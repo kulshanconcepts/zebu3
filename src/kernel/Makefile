@@ -4,7 +4,7 @@ OBJCOPY=../../bin/arm-non-eabi-objcopy
 CFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=gnu99 -Wall -Wextra
 CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra
 
-OBJECTS=boot.o kernel.o csupport.o atag.o
+OBJECTS=boot.o kernel.o csupport.o atag.o string.o mmio.o uart.o print.o
 
 all: kernel.img
 
