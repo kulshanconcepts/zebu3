@@ -24,12 +24,15 @@ _start:
 	b 2f
 
 1:
+	// store four zeroes starting at bss_start
 	stmia r4!, {r5-r8}
 
 2:
+	// ... until we're at the end of the bss
 	cmp r4, r9
 	blo 1b
 
+	// get address of kernel_main
 	ldr r3, =kernel_main
 	blx r3
 
