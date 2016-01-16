@@ -93,7 +93,7 @@ void uart_init() {
 	mmio_write(UART0_IBRD, 1);
 	mmio_write(UART0_FBRD, 40);
  
-	// Enable FIFO & 8 bit data transmissio (1 stop bit, no parity).
+	// Enable FIFO & 8 bit data transmission (1 stop bit, no parity).
 	mmio_write(UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
  
 	// Mask all interrupts.
@@ -137,6 +137,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	uart_init();
 	uart_puts("Hello, kernel World!\r\n");
  
+	// Just start echoing anything that's typed
 	while (true)
 		uart_putc(uart_getc());
 }
