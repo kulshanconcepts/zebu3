@@ -11,7 +11,7 @@
 // r2  = 0x00000100  (start of ATAGS)
 // we must preserve these for the kernel itself
 _start:
-	// stack setup
+	// stack setup (grows back from 0x8000)
 	mov sp, #0x8000
 
 	// Clear out the BSS
