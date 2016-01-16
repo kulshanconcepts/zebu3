@@ -19,7 +19,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	(void) atags;
  
  	Uart uart;
-	kprintf("Hello, %s World! %d is a nice number.\r\n", "Zebu", 42);
+	kprintf("Hello, %s World! %d is a nice number; it's %X in hex.\r\n", "Zebu", 42, 42);
  
 	// Just start echoing anything that's typed
 	while (true)

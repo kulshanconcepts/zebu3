@@ -5,3 +5,4 @@
 
 size_t strlen(const char* str);
 void itoa(int i, char* buffer);
+void itoa_hex(uint32_t i, char* buffer);

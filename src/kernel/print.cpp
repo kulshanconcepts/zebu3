@@ -56,6 +56,18 @@ void kprintf(const char* format, ...) {
 					}
 
 					state = NORMAL;
+				} else if (*format == 'X') {
+					int i = va_arg(args, int);
+					char tmp[12] = {0};
+					itoa_hex(i, tmp);
+					char* p = &tmp[0];
+					while (*p) {
+						buffer[idx++] = *p;
+						p++;
+						if (idx >= MAX_BUFFER) break;
+					}
+
+					state = NORMAL;
 				} else {
 					buffer[idx++] = '?';
 				}
