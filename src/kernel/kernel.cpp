@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include "uart.h"
+#include "print.h"
   
 #if defined(__cplusplus)
 extern "C" /* Use C linkage for kernel_main */
@@ -18,7 +19,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 	(void) atags;
  
  	Uart uart;
-	uart.puts("Hello, kernel World!\r\n");
+	kprintf("Hello, %s World! %d is a nice number.\r\n", "Zebu", 42);
  
 	// Just start echoing anything that's typed
 	while (true)

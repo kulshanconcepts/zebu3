@@ -4,3 +4,4 @@
 #include <stdint.h>
 
 size_t strlen(const char* str);
+void itoa(int i, char* buffer);
