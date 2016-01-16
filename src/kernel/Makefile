@@ -2,9 +2,9 @@ CC=../../bin/arm-non-eabi-gcc
 CXX=../../bin/arm-non-eabi-g++
 OBJCOPY=../../bin/arm-non-eabi-objcopy
 CFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=gnu99 -Wall -Wextra
-CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -Wall -Wextra
+CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra
 
-OBJECTS=boot.o kernel.o csupport.o
+OBJECTS=boot.o kernel.o csupport.o atag.o
 
 all: kernel.img
 
