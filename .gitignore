@@ -17,3 +17,5 @@
 *.so
 /util/qemu-build/src
 /util/qemu-build/build
+*.bin
+*.elf
