@@ -12,7 +12,7 @@ clean:
 	-rm kernel.img kernel.elf $(OBJECTS)
 
 %.o: %.S
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -21,7 +21,7 @@ clean:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 kernel.elf: $(OBJECTS)
-	$(CC) -T linker.ld -o kernel.elf -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
+	$(CXX) -T linker.ld -o kernel.elf -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
 
 kernel.img: kernel.elf
 	$(OBJCOPY) kernel.elf -O binary kernel.img

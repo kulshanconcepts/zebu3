@@ -26,7 +26,7 @@ _start:
 1:
 	// store four zeroes starting at bss_start
 	stmia r4!, {r5-r8}
-
+	
 2:
 	// ... until we're at the end of the bss
 	cmp r4, r9
