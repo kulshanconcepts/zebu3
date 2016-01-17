@@ -25,13 +25,20 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	ATags atags(atagsAddress);
 	ATagDescriptor* atag;
 
+	uint32_t coreFlags = 0;
+	uint32_t pageSize = 4096;
+	uint32_t rootDevice = 0;
+
 	while ((atag = atags.getNextTag()) != NULL) {
 		switch (atag->tag) {
 			case ATAG_CORE:
 				if (atag->size == 2) {
 					kprintf(" core (empty)");
 				} else {
-					kprintf(" core (flags %X, page size %d, root device %d)", atag->core.flags, atag->core.pageSize, atag->core.rootDevice);
+					coreFlags = atag->core.flags;
+					pageSize = atag->core.pageSize;
+					rootDevice = atag->core.rootDevice;
+					kprintf(" core (flags %X, page size %d, root device %d)", coreFlags, pageSize, rootDevice);
 				}
 				break;
 			case ATAG_MEM:
@@ -46,6 +53,11 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	}
 
 	kprint("... done!\r\n");
+
+	// TODO: can we get the kernel start address and size rather than hard-coding?
+	physicalMemory.initialize(0x8000, 32 << 10, pageSize);
+
+	kprintf("Starting with %d KB free of %d KB total memory.\r\n", physicalMemory.getFreeMemory() >> 10, physicalMemory.getTotalMemory() >> 10);
  
 	kprint("\r\nEnd of execution\r\n");
 
