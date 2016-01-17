@@ -1,6 +1,7 @@
 // Copyright (C) 2016 Kulshan Concepts. All rights reserved.
 
 #include "atag.h"
+#include "print.h"
 
 ATags::ATags(uint32_t address)
 	: address(address), offset(0) {
@@ -17,7 +18,7 @@ ATagDescriptor* ATags::getNextTag() {
 		return NULL;
 	}
 
-	offset += descriptor->size;
+	offset += descriptor->size << 2;
 
 	return descriptor;
 }

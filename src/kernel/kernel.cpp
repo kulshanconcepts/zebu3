@@ -7,6 +7,7 @@
 #include "uart.h"
 #include "print.h"
 #include "atag.h"
+#include "memory.h"
   
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
@@ -19,14 +20,32 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	kprintf("Reading ATAG information from %X...", atagsAddress);
 
+	PhysicalMemory physicalMemory;
+
 	ATags atags(atagsAddress);
 	ATagDescriptor* atag;
 
 	while ((atag = atags.getNextTag()) != NULL) {
-		kprintf(" type %X\r\n", atag->tag);
+		switch (atag->tag) {
+			case ATAG_CORE:
+				if (atag->size == 2) {
+					kprintf(" core (empty)");
+				} else {
+					kprintf(" core (flags %X, page size %d, root device %d)", atag->core.flags, atag->core.pageSize, atag->core.rootDevice);
+				}
+				break;
+			case ATAG_MEM:
+				kprintf(" memory (%d MB @ 0x%X)", atag->mem.size >> 20, atag->mem.startAddress);
+				if (!physicalMemory.addBlock(atag->mem.startAddress, atag->mem.size)) {
+					kprintf(" FAILED");
+				}
+				break;
+			default:
+				kprintf(" type %X", atag->tag);
+		}
 	}
 
-	kprint(" done\r\n");
+	kprint("... done!\r\n");
  
 	kprint("\r\nEnd of execution\r\n");
 
