@@ -6,10 +6,10 @@ CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra
 
 OBJECTS=boot.o kernel.o csupport.o atag.o string.o mmio.o uart.o print.o
 
-all: kernel.img
+all: kernel.bin
 
 clean:
-	-rm kernel.img kernel.elf $(OBJECTS)
+	-rm kernel.bin kernel.elf $(OBJECTS)
 
 %.o: %.S
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -23,6 +23,6 @@ clean:
 kernel.elf: $(OBJECTS)
 	$(CXX) -T linker.ld -o kernel.elf -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
 
-kernel.img: kernel.elf
-	$(OBJCOPY) kernel.elf -O binary kernel.img
+kernel.bin: kernel.elf
+	$(OBJCOPY) kernel.elf -O binary kernel.bin
 
