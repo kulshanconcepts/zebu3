@@ -28,11 +28,11 @@ gdb: gdb-7.10.1.tar.gz
 	tar -xzf gdb-7.10.1.tar.gz -C gdb --strip-components=1
 
 gcc-5.3.0.tar.gz:
-	wget http://mirrors-usa.go-parts.com/gcc/releases/gcc-5.3.0/gcc-5.3.0.tar.gz
+	wget -nv http://mirrors-usa.go-parts.com/gcc/releases/gcc-5.3.0/gcc-5.3.0.tar.gz
 
 binutils-2.25.1.tar.gz:
-	wget http://ftp.gnu.org/gnu/binutils/binutils-2.25.1.tar.gz
+	wget -nv http://ftp.gnu.org/gnu/binutils/binutils-2.25.1.tar.gz
 
 gdb-7.10.1.tar.gz:
-	wget http://ftp.gnu.org/gnu/gdb/gdb-7.10.1.tar.gz
+	wget -nv http://ftp.gnu.org/gnu/gdb/gdb-7.10.1.tar.gz
 
