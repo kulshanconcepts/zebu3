@@ -1,5 +1,5 @@
 build:
-  script: "build-ci.sh"
+  script: "bash build-ci.sh"
   only:
     - master@kulshan-concepts/zebu3
 
