@@ -27,4 +27,28 @@ public:
 	void freePage(uint32_t address);
 	uint32_t getFreeMemory() const;
 	uint32_t getTotalMemory() const;
+	inline uint32_t getPageSize() const { return pageSize; };
+};
+
+struct KernelHeapBlock {
+	uint32_t size;
+	KernelHeapBlock* prev;
+	KernelHeapBlock* next;
+};
+
+class KernelHeap {
+private:
+	static KernelHeap* instance;
+	KernelHeapBlock* freeBlocks;
+	uint32_t freeBytes;
+	KernelHeapBlock* usedBlocks;
+	uint32_t usedBytes;
+	PhysicalMemory* const physicalMemory;
+
+public:
+	KernelHeap(PhysicalMemory* const physicalMemory);
+	void* allocate(size_t length);
+	void free(void* ptr);
+
+	static inline KernelHeap* getInstance() { return instance; }
 };
