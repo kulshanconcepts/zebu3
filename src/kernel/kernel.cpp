@@ -8,6 +8,7 @@
 #include "print.h"
 #include "atag.h"
 #include "memory.h"
+#include "exception.h"
 
 extern "C" uint32_t __start;
 extern "C" uint32_t __end;
@@ -69,6 +70,10 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	kprintf("Kernel heap has %d bytes free and %d bytes used.\n", heap.getFreeBytes(), heap.getUsedBytes());
 
 	kprintf("The kernel starts at 0x%X and is %d KB.\n", kernelStart, kernelSize >> 10);
+
+	Exceptions exceptions;
+
+	exceptions.enableExceptions();
 
 	kprint("\nEnd of execution\n");
 
