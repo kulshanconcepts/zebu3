@@ -50,5 +50,8 @@ public:
 	void* allocate(size_t length);
 	void free(void* ptr);
 
+	inline uint32_t getFreeBytes() const { return freeBytes; }
+	inline uint32_t getUsedBytes() const { return usedBytes; }
+
 	static inline KernelHeap* getInstance() { return instance; }
 };

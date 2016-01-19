@@ -8,7 +8,7 @@
 #include "print.h"
 #include "atag.h"
 #include "memory.h"
-  
+
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	(void) r0;
@@ -58,7 +58,11 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	physicalMemory.initialize(0x8000, 32 << 10, pageSize);
 
 	kprintf("Starting with %d KB free of %d KB total memory.\r\n", physicalMemory.getFreeMemory() >> 10, physicalMemory.getTotalMemory() >> 10);
- 
+
+	KernelHeap heap(&physicalMemory);
+
+	kprintf("Kernel heap has %d bytes free and %d bytes used.\r\n", heap.getFreeBytes(), heap.getUsedBytes());
+
 	kprint("\r\nEnd of execution\r\n");
 
 	// Just start echoing anything that's typed
