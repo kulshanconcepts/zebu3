@@ -67,6 +67,10 @@ void PhysicalMemory::initialize(uint32_t kernelStart, uint32_t kernelSize, uint3
 
 	uint32_t kernelFirstPage = kernelStart / pageSize;
 
+	// adjust the Kernel, the stack is just before it
+	kernelFirstPage--;
+	kernelPages++;
+
 	// we need pagesOfAllocation consecutive pages to store our allocation bits
 	// if this can fit before the kernel, we'll put it there, but leave a page at the beginning reserved
 	// otherwise, it goes after the kernel
