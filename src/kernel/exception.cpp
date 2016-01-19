@@ -2,6 +2,7 @@
 
 #include "exception.h"
 #include "print.h"
+#include "mmio.h"
 
 /** Get the CPSR register
  */
@@ -27,8 +28,7 @@ void enableIRQ() {
 
 void exceptionHandler(uint32_t lr, uint32_t type) {
 	// clear the interrupt
-	uint32_t* t0mmio = (uint32_t*)0x13000000;
-	t0mmio[REG_INTCLR] = 1;
+	mmio_write(0x13000000 + REG_INTCLR * 4, 1);
 
 	if (type == ARM4_XRQ_SWINT) { // software interrupt
 		uint32_t swi = ((uint32_t*)((uint32_t*)lr - 4))[0] & 0xffff;

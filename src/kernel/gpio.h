@@ -1,4 +1,5 @@
 // Copyright (c) 2016 Kulshan Concepts. All rights reserved.
+#pragma once
 
 enum {
 	// The GPIO registers base address.
