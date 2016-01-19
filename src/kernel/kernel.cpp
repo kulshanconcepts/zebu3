@@ -9,14 +9,20 @@
 #include "atag.h"
 #include "memory.h"
 
+extern "C" uint32_t __start;
+extern "C" uint32_t __end;
+
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	(void) r0;
 	(void) r1;
  
+	uint32_t kernelStart = (uint32_t)&__start;
+	uint32_t kernelSize = (uint32_t)&__end - kernelStart;
+
  	Uart uart;
-	kprint("Zebu\r\n");
-	kprintf("Kernel is starting with %X %X %X\r\n", r0, r1, atagsAddress);
+	kprint("Zebu\n");
+	kprintf("Kernel is starting with %X %X %X\n", r0, r1, atagsAddress);
 
 	kprintf("Reading ATAG information from %X...", atagsAddress);
 
@@ -52,18 +58,19 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 		}
 	}
 
-	kprint("... done!\r\n");
+	kprint("... done!\n");
 
-	// TODO: can we get the kernel start address and size rather than hard-coding?
-	physicalMemory.initialize(0x8000, 32 << 10, pageSize);
+	physicalMemory.initialize(kernelStart, kernelSize, pageSize);
 
-	kprintf("Starting with %d KB free of %d KB total memory.\r\n", physicalMemory.getFreeMemory() >> 10, physicalMemory.getTotalMemory() >> 10);
+	kprintf("Starting with %d KB free of %d KB total memory.\n", physicalMemory.getFreeMemory() >> 10, physicalMemory.getTotalMemory() >> 10);
 
 	KernelHeap heap(&physicalMemory);
 
-	kprintf("Kernel heap has %d bytes free and %d bytes used.\r\n", heap.getFreeBytes(), heap.getUsedBytes());
+	kprintf("Kernel heap has %d bytes free and %d bytes used.\n", heap.getFreeBytes(), heap.getUsedBytes());
 
-	kprint("\r\nEnd of execution\r\n");
+	kprintf("The kernel starts at 0x%X and is %d KB.\n", kernelStart, kernelSize >> 10);
+
+	kprint("\nEnd of execution\n");
 
 	// Just start echoing anything that's typed
 	while (true)
