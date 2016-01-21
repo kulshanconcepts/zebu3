@@ -3,7 +3,7 @@
 
 enum {
 	// The GPIO registers base address.
-	GPIO_BASE = 0x20200000,
+	GPIO_BASE = 0x00200000,
 
 	// The offsets for reach register.
 

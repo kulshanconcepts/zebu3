@@ -12,7 +12,7 @@ static inline void delay(int32_t count) {
 
 enum {
 	// The base address for UART.
-	UART0_BASE = 0x20201000,
+	UART0_BASE = GPIO_BASE + 0x00001000,
 
 	// The offsets for reach register for the UART.
 	UART0_DR     = (UART0_BASE + 0x00),
@@ -102,5 +102,5 @@ void Uart::write(const char* buffer, size_t size) const {
 }
  
 void Uart::puts(const char* str) const {
-	write((const char*) str, strlen(str));
+	write(str, strlen(str));
 }

@@ -17,12 +17,13 @@ extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	(void) r0;
 	(void) r1;
- 
+
 	uint32_t kernelStart = (uint32_t)&__start;
 	uint32_t kernelSize = (uint32_t)&__end - kernelStart;
 
  	Uart uart;
-	kprint("Zebu\n");
+ 	uart.putc('Z');
+	kprint("ebu\n");
 	kprintf("Kernel is starting with %X %X %X\n", r0, r1, atagsAddress);
 
 	kprintf("Reading ATAG information from %X...", atagsAddress);
@@ -43,7 +44,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 					kprintf(" core (empty)");
 				} else {
 					coreFlags = atag->core.flags;
-					pageSize = atag->core.pageSize;
+					pageSize = atag->core.pageSize == 0 ? pageSize : atag->core.pageSize;
 					rootDevice = atag->core.rootDevice;
 					kprintf(" core (flags %X, page size %d, root device %d)", coreFlags, pageSize, rootDevice);
 				}

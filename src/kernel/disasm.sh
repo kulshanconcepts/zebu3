@@ -1,1 +1,1 @@
-../../bin/arm-non-eabi-objdump -D kernel.img -b binary -marm
+../../bin/arm-none-eabi-objdump -D kernel.bin -b binary -marm
