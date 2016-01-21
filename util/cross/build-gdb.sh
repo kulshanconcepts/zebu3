@@ -15,7 +15,7 @@ if [ $STATUS -ne 0 ]
 	exit $STATUS
 fi
 
-make && make install >> gdb.log 2>&1
+make >> gdb.log 2>&1 && make install >> gdb.log 2>&1
 STATUS=$?
 if [ $STATUS -ne 0 ]
 	then
