@@ -1,6 +1,6 @@
 /.project
 /bin
-/arm-non-eabi
+/arm-none-eabi
 /include
 /lib
 /lib64

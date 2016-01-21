@@ -1,19 +1,19 @@
-all: ../../bin/arm-non-eabi-gcc ../../bin/arm-non-eabi-gdb
+all: ../../bin/arm-none-eabi-gcc ../../bin/arm-none-eabi-gdb
 
 clean:
-	-rm -rf build-gcc build-binutils build-gdb ../../bin/arm-non-eabi-* ../../arm-non-eabi
+	-rm -rf build-gcc build-binutils build-gdb ../../bin/arm-none-eabi-* ../../arm-none-eabi
 
 distclean: clean
 	-rm -rf gcc binutils gdb
 
-../../bin/arm-non-eabi-gcc: ../../bin/arm-non-eabi-as gcc
-	TARGET="arm-non-eabi" ./build-gcc.sh
+../../bin/arm-none-eabi-gcc: ../../bin/arm-none-eabi-as gcc
+	TARGET="arm-none-eabi" ./build-gcc.sh
 
-../../bin/arm-non-eabi-as: binutils
-	TARGET="arm-non-eabi" ./build-binutils.sh
+../../bin/arm-none-eabi-as: binutils
+	TARGET="arm-none-eabi" ./build-binutils.sh
 
-../../bin/arm-non-eabi-gdb: gdb
-	TARGET="arm-non-eabi" ./build-gdb.sh
+../../bin/arm-none-eabi-gdb: gdb
+	TARGET="arm-none-eabi" ./build-gdb.sh
 
 gcc: gcc-5.3.0.tar.gz
 	-mkdir gcc

@@ -1,5 +1,5 @@
-CC=../../bin/arm-non-eabi-gcc
-CXX=../../bin/arm-non-eabi-g++
+CC=../../bin/arm-none-eabi-gcc
+CXX=../../bin/arm-none-eabi-g++
 OBJCOPY=../../bin/arm-non-eabi-objcopy
 CFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=gnu99 -Wall -Wextra
 CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra
