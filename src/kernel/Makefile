@@ -1,10 +1,10 @@
 CC=../../bin/arm-none-eabi-gcc
 CXX=../../bin/arm-none-eabi-g++
 OBJCOPY=../../bin/arm-none-eabi-objcopy
-CFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=gnu99 -Wall -Wextra
-CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra
+CFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=gnu99 -Wall -Wextra -I../shared-boot/
+CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra -I../shared-boot/
 
-OBJECTS=boot.o kernel.o csupport.o atag.o string.o mmio.o uart.o print.o memory.o exception.o
+OBJECTS=../shared-boot/boot.o ../shared-boot/csupport.o ../shared-boot/atag.o ../shared-boot/string.o ../shared-boot/mmio.o ../shared-boot/uart.o ../shared-boot/print.o memory.o exception.o kernel.o
 
 all: kernel.bin
 
