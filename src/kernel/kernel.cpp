@@ -1,5 +1,4 @@
 // Copyright (C) 2016 Kulshan Concepts. All rights reserved.
-// This is just something to play with. It should all be replaced with real stuff!
 
 #include <stddef.h>
 #include <stdint.h>
@@ -82,4 +81,3 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	while (true)
 		uart.putc(uart.getc());
 }
-
