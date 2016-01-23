@@ -1,6 +1,8 @@
 // Copyright (c) 2016 Kulshan Concepts. All rights reserved.
 
 #include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
 #include <string>
 #include "sdp.h"
 #include "serial.h"
@@ -14,6 +16,13 @@ void usage(const char* name) {
 }
 
 #define MODULE "Client"
+
+bool exitPlease = false;
+
+void sigHandler(int sig) {
+    (void)sig;
+    exitPlease = true;
+}
 
 int main(int argc, const char** argv) {
     if (argc < 2) {
@@ -35,7 +44,16 @@ int main(int argc, const char** argv) {
 
         SdpClient sdpClient(serial, logger);
 
-        // TODO: stuff... want to run SdpClient on a different thread so commands can be typed here
+        struct sigaction sigIntHandler;
+        sigIntHandler.sa_handler = sigHandler;
+        sigemptyset(&sigIntHandler.sa_mask);
+        sigIntHandler.sa_flags = 0;
+        sigaction(SIGINT, &sigIntHandler, nullptr);
+
+        // TODO: wait for user to type things here in case we need commands
+        while (!exitPlease) {
+            sleep(1);
+        }
 
     } catch (SerialException& ex) {
         logger.fatal(MODULE, "Error: %s", ex.getMessage().c_str());
