@@ -2,14 +2,17 @@
 
 #include "sdp.h"
 
-SdpClient::SdpClient(Serial& serial) : serial(serial), stop(false) {
-    //pthread_create
+#define MODULE "SdpClient"
+
+SdpClient::SdpClient(Serial& serial, Logger& logger) : serial(serial), logger(logger), stop(false) {
+    logger.debug(MODULE, "Starting SDP processing thread");
+    pthread_create(&thread, nullptr, startThread, (void*)this);
 }
 
 SdpClient::~SdpClient() {
+    logger.debug(MODULE, "Deconstructing, waiting for thread to stop");
     stop = true;
-    void* ret = nullptr;
-    pthread_join(thread, &ret);
+    pthread_join(thread, nullptr);
 }
 
 void* SdpClient::startThread(void* arg) {
@@ -18,5 +21,7 @@ void* SdpClient::startThread(void* arg) {
 }
 
 void SdpClient::run() {
+    while (!stop) {
 
+    }
 }

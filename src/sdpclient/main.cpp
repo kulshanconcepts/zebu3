@@ -4,6 +4,7 @@
 #include <string>
 #include "sdp.h"
 #include "serial.h"
+#include "logger.h"
 
 void usage(const char* name) {
     fprintf(stderr, "usage:\n");
@@ -12,28 +13,32 @@ void usage(const char* name) {
     fprintf(stderr, " device: A serial device connected to the Raspberry Pi\n");
 }
 
+#define MODULE "Client"
+
 int main(int argc, const char** argv) {
     if (argc < 2) {
         usage(argv[0]);
         return 1;
     }
 
+    Logger logger;
+
     try {
 
         std::string device = argv[1];
 
-        printf("Connecting to %s...\n", device.c_str());
+        logger.info(MODULE, "Connecting to %s", device.c_str());
 
-        Serial serial(device);
+        Serial serial(device, logger);
 
-        printf("Waiting for bootloader...\n");
+        logger.info(MODULE, "Waiting for bootloader");
 
-        SdpClient sdpClient(serial);
+        SdpClient sdpClient(serial, logger);
 
-        // TODO: stuff... want to run SdpClient on a differne thread so commands can be typed here
+        // TODO: stuff... want to run SdpClient on a different thread so commands can be typed here
 
     } catch (SerialException& ex) {
-        fprintf(stderr, "Error: %s\n", ex.getMessage().c_str());
+        logger.fatal(MODULE, "Error: %s", ex.getMessage().c_str());
         return 1;
     }
 

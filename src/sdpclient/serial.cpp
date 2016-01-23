@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include "serial.h"
 
-Serial::Serial(const std::string& device) {
+Serial::Serial(const std::string& device, Logger& logger) : logger(logger) {
     fd = open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
     if (-1 == fd) {

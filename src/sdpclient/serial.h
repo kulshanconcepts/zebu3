@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include "logger.h"
 
 class SerialException {
 private:
@@ -14,9 +15,10 @@ public:
 class Serial {
 private:
     int fd;
+    Logger& logger;
 
 public:
-    Serial(const std::string& device);
+    Serial(const std::string& device, Logger& logger);
     ~Serial();
 
     bool isOpen() const;

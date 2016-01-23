@@ -1,5 +1,5 @@
 CXXFLAGS=-O2 -W -Wall -std=c++11
-OBJECTS=sdp.o main.o serial.o
+OBJECTS=sdp.o main.o serial.o logger.o
 
 all: sdpclient
 
