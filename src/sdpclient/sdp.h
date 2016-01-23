@@ -3,11 +3,13 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "serial.h"
 
 class SdpClient {
 private:
+    Serial& serial;
 
 public:
-    SdpClient();
+    SdpClient(Serial& serial);
     ~SdpClient();
 };
