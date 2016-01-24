@@ -7,6 +7,23 @@
 
 #define SDP_VERSION 1
 
+extern "C"
+void memset(void* address, uint32_t value, size_t count) {
+	uint8_t* addr = (uint8_t*)address;
+
+	while (count >= 4) {
+		*((uint32_t*)addr) = value;
+		addr += 4;
+		count -= 4;
+	}
+
+	while (count > 0) {
+		*addr = (uint8_t)value;
+		addr++;
+		count--;
+	}
+}
+
 BootloaderSdp::BootloaderSdp(Uart& uart, ATags& atags)
         : uart(uart), atags(atags), connected(false) {
     // nothing else now
@@ -36,7 +53,10 @@ void BootloaderSdp::run() {
             continue;
         }
 
-        // if we get here, we're starting over
+        log(LEVEL_INFO, MODULE_BOOTLOADER,
+            "Kernel is loaded, executing it now.");
+
+        return;
     }
 }
 
@@ -128,11 +148,61 @@ bool BootloaderSdp::checkVersion() {
 }
 
 bool BootloaderSdp::getKernel() {
-    // TODO: Implement getKernel!
+    startMessage(MESSAGE_REQUEST_KERNEL);
+    uint16_t hash;
+    startHash(hash, MESSAGE_REQUEST_KERNEL);
+    send(hash);
 
-    while (1) {} // we would normally just run the kernel from here
+    MessageType type;
+    if (!getMessageStart(type)) {
+        return false;
+    }
 
-    return false;
+    if (type != MESSAGE_FILE_INFO) {
+        return false;
+    }
+
+    startHash(hash, MESSAGE_FILE_INFO);
+
+    uint16_t len = get16();
+    char name[256] = {0};
+    get((uint8_t*)name, len);
+    addHash(hash, name, len);
+
+    uint32_t size = get32();
+    addHash(hash, size);
+
+    if (get16() != hash) {
+        return false;
+    }
+
+    uint8_t* kernel = (uint8_t*)0x8000;
+
+    // Now expect some MESSAGE_FILE_DATA messages!
+    while (size > 0) {
+        if (!getMessageStart(type)) {
+            return false;
+        }
+
+        if (type != MESSAGE_FILE_DATA) {
+            return false;
+        }
+
+        startHash(hash, MESSAGE_FILE_DATA);
+
+        uint16_t len = get16();
+        get(kernel, len);
+        addHash(hash, kernel, len);
+
+        if (get16() != hash) {
+            return false;
+        }
+
+        kernel += len;
+        size -= len;
+    }
+
+    return true;
 }
 
 /* HASHERS */

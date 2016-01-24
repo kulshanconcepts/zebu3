@@ -8,6 +8,8 @@
 #include "atag.h"
 #include "sdp.h"
 
+typedef void (*kernelPtr)(uint32_t, uint32_t, uint32_t);
+
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	(void) r0;
@@ -58,5 +60,10 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
     sdp.run();
 
-    while (true) {}
+    // kernel is now loaded at 0x8000
+	kernelPtr kernel = (kernelPtr)0x8000;
+
+	(*kernel)(r0, r1, atagsAddress);
+
+	while (1) {}
 }
