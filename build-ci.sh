@@ -1,2 +1,2 @@
-cd util/cross && make && cd ../../src/kernel && make
+CI_BUILD="yes" make
 
