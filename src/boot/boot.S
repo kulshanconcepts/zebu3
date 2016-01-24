@@ -2,7 +2,7 @@
 
 .section ".text.boot"
 
-.globl _start
+.globl _start_bl
 
 // Kernel entry point
 // r15 = should be 0x8000
@@ -10,9 +10,22 @@
 // r1  = 0x00000C42
 // r2  = 0x00000100  (start of ATAGS)
 // we must preserve these for the kernel itself
-_start:
+_start_bl:
 	// stack setup (grows back from 0x8000)
 	mov sp, #0x8000
+
+	// relocate the bootloader
+	mov r3, #0x8000
+	ldr r4, =__start
+	ldr r9, =__data_end
+1:
+	ldmia r3!, {r5-r8}
+	stmia r4!, {r5-r8}
+
+	cmp r4, r9
+	blo 1b
+
+	// Code is now relocated
 
 	// Clear out the BSS
 	ldr r4, =__bss_start
@@ -33,7 +46,7 @@ _start:
 	blo 1b
 
 	// get address of kernel_main
-	ldr r3, =kernel_main
+	ldr r3, =kernel_main // this will actually jump us to our relocated location
 	blx r3
 
 halt:

@@ -1,9 +1,9 @@
-ENTRY(_start)
+ENTRY(_start_bl)
  
 SECTIONS
 {
     /* Starts at LOADER_ADDR. */
-    . = 0x8000;
+    . = 0x2000000; /* 32 MB in should be good */
     __start = .;
     __text_start = .;
     .text :
