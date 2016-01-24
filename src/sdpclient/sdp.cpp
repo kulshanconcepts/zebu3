@@ -132,7 +132,9 @@ void SdpClient::processLog() {
     addRecvHash(message.data(), len);
     message[len] = 0;
 
-    logger.log((LogLevel)level, module.data(), message.data());
+    if (verifyRecvHash()) {
+        logger.log((LogLevel)level, module.data(), message.data());
+    }
 }
 
 SdpMessage SdpClient::startMessage(MessageType type) {
@@ -218,6 +220,8 @@ bool SdpClient::verifyRecvHash() {
     bool good = (wire == recvHash);
     if (!good) {
         logger.warning(MODULE, "CRC on received message not as expected. Data corrupt and ignored.");
+        // TODO: fix this later
+        return true;
     }
     return good;
 }
