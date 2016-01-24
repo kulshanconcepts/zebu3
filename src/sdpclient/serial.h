@@ -16,6 +16,7 @@ class Serial {
 private:
     int fd;
     Logger& logger;
+    volatile bool abortFlag;
 
 public:
     Serial(const std::string& device, Logger& logger);
@@ -23,6 +24,9 @@ public:
 
     bool isOpen() const;
 
+    void waitForData();
     void write(const char* data, size_t length);
     size_t read(char* data, size_t length);
+
+    inline void abort() { abortFlag = true; }
 };

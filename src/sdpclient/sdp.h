@@ -14,13 +14,16 @@ private:
     pthread_t thread;
     pthread_mutex_t mutex;
     volatile bool stop;
+    volatile bool running;
 
     static void* startThread(void* arg);
     void run();
+
+    void readExactly(void* data, size_t length);
 
 public:
     SdpClient(Serial& serial, Logger& logger);
     ~SdpClient();
 
-    void waitForKernel();
+    inline bool isRunning() const { return running; }
 };

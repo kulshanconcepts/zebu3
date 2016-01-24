@@ -51,9 +51,11 @@ int main(int argc, const char** argv) {
         sigaction(SIGINT, &sigIntHandler, nullptr);
 
         // TODO: wait for user to type things here in case we need commands
-        while (!exitPlease) {
+        while (!exitPlease && sdpClient.isRunning()) {
             sleep(1);
         }
+
+        serial.abort();
 
     } catch (SerialException& ex) {
         logger.fatal(MODULE, "Error: %s", ex.getMessage().c_str());

@@ -71,9 +71,29 @@ void Serial::write(const char* data, size_t length) {
 }
 
 size_t Serial::read(char* data, size_t length) {
+    waitForData();
     ssize_t br = ::read(fd, data, length);
     if (br == -1) {
         throw SerialException("Could not read data");
     }
     return br;
+}
+
+void Serial::waitForData() {
+    fd_set readset;
+    int result;
+
+    do {
+        FD_ZERO(&readset);
+        FD_SET(fd, &readset);
+        result = select(fd + 1, &readset, nullptr, nullptr, nullptr);
+    } while (result == -1 && errno == EINTR && !abortFlag);
+
+    if (abortFlag) {
+        throw SerialException("Aborted by client request");
+    }
+
+    if (result < 0) {
+        throw SerialException("Lost serial connection during select");
+    }
 }
