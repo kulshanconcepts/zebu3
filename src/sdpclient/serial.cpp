@@ -8,7 +8,9 @@
 #include <unistd.h>
 #include "serial.h"
 
-Serial::Serial(const std::string& device, Logger& logger) : logger(logger) {
+#define MODULE "ClientSerial"
+
+Serial::Serial(const std::string& device, Logger& logger) : logger(logger), abortFlag(false) {
     fd = open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
     if (-1 == fd) {
@@ -59,6 +61,7 @@ bool Serial::isOpen() const {
 
 void Serial::write(const char* data, size_t length) {
     ssize_t bw = 0;
+    logger.debug(MODULE, "Writing %u bytes", length);
     while ((size_t)bw < length) {
         bw  = ::write(fd, data, length);
         if (-1 == bw) {
@@ -72,7 +75,9 @@ void Serial::write(const char* data, size_t length) {
 
 size_t Serial::read(char* data, size_t length) {
     waitForData();
+    logger.debug(MODULE, "Reading data");
     ssize_t br = ::read(fd, data, length);
+    logger.debug(MODULE, "Read %u bytes", br);
     if (br == -1) {
         throw SerialException("Could not read data");
     }
@@ -83,11 +88,16 @@ void Serial::waitForData() {
     fd_set readset;
     int result;
 
+    logger.debug(MODULE, "Waiting for data");
+
     do {
         FD_ZERO(&readset);
         FD_SET(fd, &readset);
-        result = select(fd + 1, &readset, nullptr, nullptr, nullptr);
-    } while (result == -1 && errno == EINTR && !abortFlag);
+        timeval timeout = {0, 100};
+        result = select(fd + 1, &readset, nullptr, nullptr, &timeout);
+    } while (result == 0 && !abortFlag);
+
+    logger.debug(MODULE, "Got some data? %d %d %s", result, errno, abortFlag ? "true" : "false");
 
     if (abortFlag) {
         throw SerialException("Aborted by client request");
