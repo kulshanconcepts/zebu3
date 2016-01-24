@@ -97,8 +97,8 @@ bool BootloaderSdp::checkVersion() {
     startMessage(MESSAGE_GET_VERSION);
     startHash(hash, MESSAGE_GET_VERSION);
 
-    send((uint8_t)SDP_VERSION);
-    addHash(hash, (uint8_t)SDP_VERSION);
+    send((uint16_t)SDP_VERSION);
+    addHash(hash, (uint16_t)SDP_VERSION);
 
     send(hash);
 
@@ -113,7 +113,7 @@ bool BootloaderSdp::checkVersion() {
 
     startHash(hash, MESSAGE_VERSION_RESPONSE);
 
-    uint8_t version = get8();
+    uint16_t version = get16();
     addHash(hash, version);
 
     if (get16() != hash) {
@@ -129,6 +129,8 @@ bool BootloaderSdp::checkVersion() {
 
 bool BootloaderSdp::getKernel() {
     // TODO: Implement getKernel!
+
+    while (1) {} // we would normally just run the kernel from here
 
     return false;
 }
