@@ -48,12 +48,17 @@ void SdpClient::run() {
                 continue;
             }
 
+            resetRecvHash((MessageType)type);
+
             switch (type) {
                 case MESSAGE_PING:
                     processPing();
                     break;
                 case MESSAGE_GET_VERSION:
                     processGetVersion();
+                    break;
+                case MESSAGE_LOG:
+                    processLog();
                     break;
                 default:
                     logger.warning(MODULE, "Message parsing isn't implemented for %02X!", (unsigned int)type);
@@ -101,6 +106,33 @@ void SdpClient::processGetVersion() {
                     serverVersion, (uint16_t)SDP_VERSION);
         }
     }
+}
+
+void SdpClient::processLog() {
+    uint8_t level;
+    readExactly(&level, 1);
+    addRecvHash(level);
+    if (level > LOGLEVEL_DEBUG) {
+        logger.warning(MODULE, "Got log message with unknown log level (%d), assuming DEBUG.", (int)level);
+        level = LOGLEVEL_DEBUG;
+    }
+
+    uint16_t len;
+    readExactly(&len, 2);
+    addRecvHash(len);
+    std::vector<char> module(len+1);
+    readExactly(module.data(), len);
+    addRecvHash(module.data(), len);
+    module[len] = 0;
+
+    readExactly(&len, 2);
+    addRecvHash(len);
+    std::vector<char> message(len+1);
+    readExactly(message.data(), len);
+    addRecvHash(message.data(), len);
+    message[len] = 0;
+
+    logger.log((LogLevel)level, module.data(), message.data());
 }
 
 SdpMessage SdpClient::startMessage(MessageType type) {
@@ -157,7 +189,16 @@ void SdpClient::addRecvHash(uint16_t datum) {
     addRecvHash((uint8_t)(datum >> 8));
 }
 
-uint16_t SdpClient::computeHash(void* data, size_t length) {
+void SdpClient::addRecvHash(const void* data, size_t length) {
+    uint8_t* dataPtr = (uint8_t*)data;
+
+    while (length > 0) {
+        addRecvHash(*dataPtr++);
+        length--;
+    }
+}
+
+uint16_t SdpClient::computeHash(const void* data, size_t length) {
     uint16_t crc = 0xFFFF;
     uint16_t x;
     uint8_t* dataPtr = (uint8_t*)data;

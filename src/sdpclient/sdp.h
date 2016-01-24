@@ -47,17 +47,18 @@ private:
     void appendMessage(SdpMessage& message, uint32_t datum);
     void appendMessage(SdpMessage& message, void* data, size_t length);
     void sendMessage(const SdpMessage& message);
-    uint16_t computeHash(void* data, size_t length);
+    uint16_t computeHash(const void* data, size_t length);
 
     void resetRecvHash(MessageType type);
     void addRecvHash(uint8_t datum);
     void addRecvHash(uint16_t datum);
     void addRecvHash(uint32_t datum);
-    void addRecvHash(void* data, size_t length);
+    void addRecvHash(const void* data, size_t length);
     bool verifyRecvHash();
 
     void processPing();
     void processGetVersion();
+    void processLog();
 
 public:
     SdpClient(Serial& serial, Logger& logger);
