@@ -63,6 +63,7 @@ void Serial::write(const char* data, size_t length) {
     ssize_t bw = 0;
     logger.debug(MODULE, "Writing %u bytes", length);
     while ((size_t)bw < length) {
+        waitToWrite();
         bw  = ::write(fd, data, length);
         if (-1 == bw) {
             throw SerialException("Could not write data");
@@ -98,6 +99,28 @@ void Serial::waitForData() {
     } while (result == 0 && !abortFlag);
 
     logger.debug(MODULE, "Got some data? %d %d %s", result, errno, abortFlag ? "true" : "false");
+
+    if (abortFlag) {
+        throw SerialException("Aborted by client request");
+    }
+
+    if (result < 0) {
+        throw SerialException("Lost serial connection during select");
+    }
+}
+
+void Serial::waitToWrite() {
+    fd_set writeset;
+    int result;
+
+    logger.debug(MODULE, "Waiting to write");
+
+    do {
+        FD_ZERO(&writeset);
+        FD_SET(fd, &writeset);
+        timeval timeout = {0, 100};
+        result = select(fd + 1, nullptr, &writeset, nullptr, &timeout);
+    } while (result == 0 && !abortFlag);
 
     if (abortFlag) {
         throw SerialException("Aborted by client request");

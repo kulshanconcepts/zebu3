@@ -24,8 +24,10 @@ public:
 
     bool isOpen() const;
 
-    void waitForData();
+    void waitToWrite();
     void write(const char* data, size_t length);
+
+    void waitForData();
     size_t read(char* data, size_t length);
 
     inline void abort() { abortFlag = true; }
