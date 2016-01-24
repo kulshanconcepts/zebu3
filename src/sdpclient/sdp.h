@@ -30,6 +30,7 @@ class SdpClient {
 private:
     Serial& serial;
     Logger& logger;
+    const std::string kernelFile;
     pthread_t thread;
     pthread_mutex_t mutex;
     volatile bool stop;
@@ -41,11 +42,13 @@ private:
 
     void readExactly(void* data, size_t length);
 
-    SdpMessage startMessage(MessageType type);
-    void appendMessage(SdpMessage& message, uint8_t datum);
-    void appendMessage(SdpMessage& message, uint16_t datum);
-    void appendMessage(SdpMessage& message, uint32_t datum);
-    void appendMessage(SdpMessage& message, void* data, size_t length);
+    void sendError(const char* message);
+
+    SdpMessage startMessage(MessageType type) const;
+    void appendMessage(SdpMessage& message, uint8_t datum) const;
+    void appendMessage(SdpMessage& message, uint16_t datum) const;
+    void appendMessage(SdpMessage& message, uint32_t datum) const;
+    void appendMessage(SdpMessage& message, const void* data, size_t length) const;
     void sendMessage(const SdpMessage& message);
     uint16_t computeHash(const void* data, size_t length);
 
@@ -59,9 +62,10 @@ private:
     void processPing();
     void processGetVersion();
     void processLog();
+    void processRequestKernel();
 
 public:
-    SdpClient(Serial& serial, Logger& logger);
+    SdpClient(Serial& serial, Logger& logger, const std::string& kernelFile);
     ~SdpClient();
 
     inline bool isRunning() const { return running; }

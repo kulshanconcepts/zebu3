@@ -8,7 +8,8 @@
 
 #define SDP_VERSION 1
 
-SdpClient::SdpClient(Serial& serial, Logger& logger) : serial(serial), logger(logger), stop(false), running(true) {
+SdpClient::SdpClient(Serial& serial, Logger& logger, const std::string& kernelFile)
+        : serial(serial), logger(logger), kernelFile(kernelFile), stop(false), running(true) {
     logger.debug(MODULE, "Starting SDP processing thread");
     pthread_create(&thread, nullptr, startThread, (void*)this);
 }
@@ -59,6 +60,9 @@ void SdpClient::run() {
                     break;
                 case MESSAGE_LOG:
                     processLog();
+                    break;
+                case MESSAGE_REQUEST_KERNEL:
+                    processRequestKernel();
                     break;
                 default:
                     logger.warning(MODULE, "Message parsing isn't implemented for %02X!", (unsigned int)type);
@@ -137,23 +141,95 @@ void SdpClient::processLog() {
     }
 }
 
-SdpMessage SdpClient::startMessage(MessageType type) {
+void SdpClient::processRequestKernel() {
+    if (verifyRecvHash()) {
+        logger.info(MODULE, "Server has requested kernel.");
+
+        FILE* fp = fopen(kernelFile.c_str(), "rb");
+        if (fp == nullptr) {
+            logger.error(MODULE, "Could not open kernel file.");
+            sendError("Could not open kernel file.");
+            return;
+        }
+
+        fseek(fp, 0L, SEEK_END);
+        size_t size = ftell(fp);
+        fseek(fp, 0L, SEEK_SET);
+
+        std::string fileName;
+
+        size_t slash = kernelFile.find_last_of("/\\");
+        if (slash == std::string::npos) {
+            fileName = kernelFile;
+        } else {
+            fileName = kernelFile.substr(slash+1);
+        }
+
+        SdpMessage infoMessage = startMessage(MESSAGE_FILE_INFO);
+        size_t len = fileName.size();
+        appendMessage(infoMessage, (uint16_t)len);
+        appendMessage(infoMessage, fileName.c_str(), len);
+        appendMessage(infoMessage, (uint32_t)size);
+        sendMessage(infoMessage);
+
+        logger.info(MODULE, "Sending %u-byte kernel file to server.", size);
+
+        uint8_t buffer[4096];
+        while (size > 0) {
+            size_t br = fread(buffer, 1, 4096, fp);
+            size -= br;
+
+            logger.debug(MODULE, "Read %u bytes from kernel file.", br);
+
+            if (br == 0 && size != 0) {
+                logger.error(MODULE, "There was a problem (errno=%d) reading the kernel file.", ferror(fp));
+                sendError("Problem reading kernel file");
+            }
+
+            SdpMessage dataMessage = startMessage(MESSAGE_FILE_DATA);
+            appendMessage(dataMessage, (uint16_t)br);
+            appendMessage(dataMessage, buffer, br);
+            sendMessage(dataMessage);
+        }
+
+        logger.info(MODULE, "Kernel has been sent.");
+
+        fclose(fp);
+    }
+}
+
+void SdpClient::sendError(const char* info) {
+    SdpMessage message = startMessage(MESSAGE_ERROR);
+    size_t len = strlen(info);
+    appendMessage(message, (uint16_t)len);
+    appendMessage(message, info, len);
+    sendMessage(message);
+}
+
+SdpMessage SdpClient::startMessage(MessageType type) const {
     SdpMessage msg;
     msg.type = type;
 
     return msg;
 }
 
-void SdpClient::appendMessage(SdpMessage& message, uint8_t datum) {
+void SdpClient::appendMessage(SdpMessage& message, uint8_t datum) const {
     message.data.push_back(datum);
 }
 
-void SdpClient::appendMessage(SdpMessage& message, uint16_t datum) {
+void SdpClient::appendMessage(SdpMessage& message, uint16_t datum) const {
     message.data.push_back((uint8_t)(datum & 0xFF));
     message.data.push_back((uint8_t)(datum >> 8));
 }
 
-void SdpClient::appendMessage(SdpMessage& message, void* data, size_t length) {
+void SdpClient::appendMessage(SdpMessage& message, uint32_t datum) const {
+    message.data.push_back((uint8_t)(datum & 0xFF));
+    message.data.push_back((uint8_t)(datum >> 8));
+    message.data.push_back((uint8_t)(datum >> 16));
+    message.data.push_back((uint8_t)(datum >> 24));
+}
+
+void SdpClient::appendMessage(SdpMessage& message, const void* data, size_t length) const {
     size_t placement = message.data.size();
     message.data.resize(message.data.size() + length);
     memcpy(&(message.data.data()[placement]), data, length);

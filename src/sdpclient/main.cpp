@@ -12,7 +12,10 @@
 
 void usage(const char* name) {
     fprintf(stderr, "usage:\n");
-    fprintf(stderr, " %s [-l #] <device>\n", name);
+    fprintf(stderr, " %s <options> <device>\n", name);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "options:\n");
+    fprintf(stderr, " -k <filename>: Specify kernel file name (default kernel.img)\n");
     fprintf(stderr, "\n");
     fprintf(stderr, " -l #: Set maximum log level to one of:\n");
     fprintf(stderr, "        0: Fatal\n");
@@ -20,7 +23,7 @@ void usage(const char* name) {
     fprintf(stderr, "        2: Warning (default)\n");
     fprintf(stderr, "        3: Info\n");
     fprintf(stderr, "        4: Debug\n");
-    fprintf(stderr, " device: A serial device connected to the Raspberry Pi\n");
+    fprintf(stderr, "device: A serial device connected to the Raspberry Pi\n");
 }
 
 #define MODULE "Client"
@@ -40,6 +43,7 @@ int main(int argc, const char** argv) {
     }
 
     std::string device;
+    std::string kernelFile = "kernel.img";
 
     int argIndex = 1;
     while (argIndex < argc) {
@@ -57,6 +61,14 @@ int main(int argc, const char** argv) {
                 usage(argv[0]);
                 return 1;
             }
+        } else if (strcmp("-k", arg) == 0) {
+            argIndex++;
+            if (argIndex >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            arg = argv[argIndex];
+            kernelFile = arg;
         } else if (device.empty()) {
             device = arg;
         } else {
@@ -82,7 +94,7 @@ int main(int argc, const char** argv) {
 
         logger.info(MODULE, "Waiting for bootloader");
 
-        SdpClient sdpClient(serial, logger);
+        SdpClient sdpClient(serial, logger, kernelFile);
 
         struct sigaction sigIntHandler;
         sigIntHandler.sa_handler = sigHandler;
