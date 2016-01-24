@@ -217,17 +217,15 @@ void BootloaderSdp::startHash(uint16_t& crc, MessageType type) {
 }
 
 void BootloaderSdp::addHash(uint16_t& crc, uint32_t datum) {
-    size_t d = 4;
-    while (d--) {
-        addHash(crc, ((uint8_t*)&datum)[d]);
-    }
+	addHash(crc, (uint8_t)(datum & 0xFF));
+	addHash(crc, (uint8_t)(datum >> 8));
+	addHash(crc, (uint8_t)(datum >> 16));
+    addHash(crc, (uint8_t)(datum >> 24));
 }
 
 void BootloaderSdp::addHash(uint16_t& crc, uint16_t datum) {
-    size_t d = 2;
-    while (d--) {
-        addHash(crc, ((uint8_t*)&datum)[d]);
-    }
+	addHash(crc, (uint8_t)(datum & 0xFF));
+	addHash(crc, (uint8_t)(datum >> 8));
 }
 
 void BootloaderSdp::addHash(uint16_t& crc, uint8_t datum) {
@@ -305,11 +303,11 @@ uint8_t BootloaderSdp::get8() {
 }
 
 uint16_t BootloaderSdp::get16() {
-    return (uart.getc() << 8) | uart.getc();
+    return uart.getc() | ((uint16_t)uart.getc() << 8);
 }
 
 uint32_t BootloaderSdp::get32() {
-    return (uart.getc() << 24) | (uart.getc() << 16) | (uart.getc() << 8) | uart.getc();
+    return uart.getc() | ((uint32_t)uart.getc() << 8) | ((uint32_t)uart.getc() << 16) | ((uint32_t)uart.getc() << 24);
 }
 
 void BootloaderSdp::get(uint8_t* data, uint16_t length) {

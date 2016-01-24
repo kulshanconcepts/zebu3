@@ -165,8 +165,8 @@ void SdpClient::sendMessage(const SdpMessage& message) {
     data.data()[4] = message.type;
     memcpy(&(data.data()[5]), message.data.data(), message.data.size());
     uint16_t hash = computeHash(data.data(), data.size());
-    data.push_back((uint8_t)(hash >> 8));
     data.push_back((uint8_t)(hash & 0xFF));
+    data.push_back((uint8_t)(hash >> 8));
 
     serial.write((const char*)data.data(), data.size());
 }
@@ -219,9 +219,7 @@ bool SdpClient::verifyRecvHash() {
     readExactly(&wire, 2);
     bool good = (wire == recvHash);
     if (!good) {
-        logger.warning(MODULE, "CRC on received message not as expected. Data corrupt and ignored.");
-        // TODO: fix this later
-        return true;
+        logger.warning(MODULE, "CRC on received message not as expected. Data corrupt and ignored. (%04hX received, %04hX calculated)", wire, recvHash);
     }
     return good;
 }
