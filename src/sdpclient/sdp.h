@@ -42,6 +42,10 @@ private:
     void readExactly(void* data, size_t length);
 
     SdpMessage startMessage(MessageType type);
+    void appendMessage(SdpMessage& message, uint8_t datum);
+    void appendMessage(SdpMessage& message, uint16_t datum);
+    void appendMessage(SdpMessage& message, uint32_t datum);
+    void appendMessage(SdpMessage& message, void* data, size_t length);
     void sendMessage(const SdpMessage& message);
     uint16_t computeHash(void* data, size_t length);
 
@@ -53,6 +57,7 @@ private:
     bool verifyRecvHash();
 
     void processPing();
+    void processGetVersion();
 
 public:
     SdpClient(Serial& serial, Logger& logger);

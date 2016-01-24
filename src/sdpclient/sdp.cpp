@@ -6,6 +6,8 @@
 
 #define MODULE "SdpClient"
 
+#define SDP_VERSION 1
+
 SdpClient::SdpClient(Serial& serial, Logger& logger) : serial(serial), logger(logger), stop(false), running(true) {
     logger.debug(MODULE, "Starting SDP processing thread");
     pthread_create(&thread, nullptr, startThread, (void*)this);
@@ -50,6 +52,9 @@ void SdpClient::run() {
                 case MESSAGE_PING:
                     processPing();
                     break;
+                case MESSAGE_GET_VERSION:
+                    processGetVersion();
+                    break;
                 default:
                     logger.warning(MODULE, "Message parsing isn't implemented for %02X!", (unsigned int)type);
             }
@@ -81,11 +86,43 @@ void SdpClient::processPing() {
     }
 }
 
+void SdpClient::processGetVersion() {
+    uint16_t serverVersion;
+    readExactly(&serverVersion, 2);
+    addRecvHash(serverVersion);
+    if (verifyRecvHash()) {
+        logger.info(MODULE, "Server reports protocol version %hu", serverVersion);
+        if (serverVersion == SDP_VERSION) {
+            SdpMessage message = startMessage(MESSAGE_VERSION_RESPONSE);
+            appendMessage(message, (uint16_t)SDP_VERSION);
+            sendMessage(message);
+        } else {
+            logger.error(MODULE, "Server's protocol version (%hu) is incompatible with client's version (%hu).",
+                    serverVersion, (uint16_t)SDP_VERSION);
+        }
+    }
+}
+
 SdpMessage SdpClient::startMessage(MessageType type) {
     SdpMessage msg;
     msg.type = type;
 
     return msg;
+}
+
+void SdpClient::appendMessage(SdpMessage& message, uint8_t datum) {
+    message.data.push_back(datum);
+}
+
+void SdpClient::appendMessage(SdpMessage& message, uint16_t datum) {
+    message.data.push_back((uint8_t)(datum & 0xFF));
+    message.data.push_back((uint8_t)(datum >> 8));
+}
+
+void SdpClient::appendMessage(SdpMessage& message, void* data, size_t length) {
+    size_t placement = message.data.size();
+    message.data.resize(message.data.size() + length);
+    memcpy(&(message.data.data()[placement]), data, length);
 }
 
 void SdpClient::sendMessage(const SdpMessage& message) {
@@ -113,6 +150,11 @@ void SdpClient::addRecvHash(uint8_t datum) {
     uint16_t x = recvHash >> 8 ^ datum;
     x ^= x >> 4;
     recvHash = (recvHash << 8) ^ ((uint16_t)(x << 12)) ^ ((uint16_t)(x << 5)) ^ ((uint16_t)x);
+}
+
+void SdpClient::addRecvHash(uint16_t datum) {
+    addRecvHash((uint8_t)(datum & 0xFF));
+    addRecvHash((uint8_t)(datum >> 8));
 }
 
 uint16_t SdpClient::computeHash(void* data, size_t length) {
