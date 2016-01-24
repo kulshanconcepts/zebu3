@@ -52,13 +52,13 @@ void SdpClient::run() {
                     char signature[4];
                     readExactly(signature, 1);
                     if (signature[0] != 'Z') {
-                        logger.debug(MODULE, "Not at command start, will keep looking (got %X)", signature[0]);
+                        logger.debug(MODULE, "Not at command start, will keep looking (got %02X)", signature[0]);
                         currentState = waitingForConnection;
                         continue;
                     }
                     readExactly(&signature[1], 3);
                     if (memcmp("Zebu", signature, 4) != 0) {
-                        logger.warning(MODULE, "Expected protocol message signature, but got %X %X %X %X", signature[0], signature[1], signature[2], signature[3]);
+                        logger.warning(MODULE, "Expected protocol message signature, but got %02X %02X %02X %02X", signature[0], signature[1], signature[2], signature[3]);
                         currentState = waitingForConnection;
                         continue;
                     }
