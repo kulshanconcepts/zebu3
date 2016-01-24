@@ -11,10 +11,11 @@ Logger::Logger() : mutex(PTHREAD_MUTEX_INITIALIZER) {
 Logger::~Logger() {}
 
 void Logger::log(LogLevel level, const std::string& module, const std::string& format, va_list args) {
-    // TODO: check if log level and module match current logging settings
-    pthread_mutex_lock(&mutex);
-    vprintf(("[" + getLevelString(level) + ":" + module + "]: " + format + "\n").c_str(), args);
-    pthread_mutex_unlock(&mutex);
+    if (level <= maxLevel) {
+        pthread_mutex_lock(&mutex);
+        vprintf(("[" + getLevelString(level) + ":" + module + "]: " + format + "\n").c_str(), args);
+        pthread_mutex_unlock(&mutex);
+    }
 }
 
 void Logger::log(LogLevel level, const std::string& module, const std::string& format, ...) {

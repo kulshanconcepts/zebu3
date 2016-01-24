@@ -21,9 +21,13 @@ private:
     static std::string getLevelString(LogLevel level);
     void log(LogLevel level, const std::string& module, const std::string& format, va_list args);
 
+    LogLevel maxLevel;
+
 public:
     Logger();
     ~Logger();
+
+    inline void setMaxLevel(LogLevel level) { maxLevel = level; };
 
     void log(LogLevel level, const std::string& module, const std::string& format, ...);
     void fatal(const std::string& module, const std::string& format, ...);
