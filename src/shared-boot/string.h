@@ -7,3 +7,4 @@
 size_t strlen(const char* str);
 void itoa(int i, char* buffer);
 void itoa_hex(uint32_t i, char* buffer);
+extern "C" void* memcpy(void* destination, const void* source, size_t count);

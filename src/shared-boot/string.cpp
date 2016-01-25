@@ -10,6 +10,21 @@ size_t strlen(const char* str) {
 	return ret;
 }
 
+extern "C" void* memcpy(void* destination, const void* source, size_t count) {
+	// TODO: this can be made a lot faster
+	char* d = (char*)destination;
+	char* s = (char*)source;
+
+	while (count > 0) {
+		*d = *s;
+		d++;
+		s++;
+		count--;
+	}
+
+	return destination;
+}
+
 void itoa(int i, char* buffer) {
 	if (i == 0) {
 		*buffer = '0';
