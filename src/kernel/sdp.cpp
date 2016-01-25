@@ -23,15 +23,10 @@ bool SdpServer::sendMessage(MessageType type, const void* data, size_t length) {
     startHash(hash, type);
 
     uart.putc('Z');
-    addHash(hash, 'Z');
     uart.putc('e');
-    addHash(hash, 'e');
     uart.putc('b');
-    addHash(hash, 'b');
     uart.putc('u');
-    addHash(hash, 'u');
     uart.putc(type);
-    addHash(hash, (uint8_t)type);
 
     if (data != nullptr && length > 0) {
         uart.write((const char*)data, length);
@@ -142,9 +137,10 @@ void SdpServer::addHash(uint16_t& crc, uint8_t datum) {
 }
 
 void SdpServer::addHash(uint16_t& crc, const uint8_t* data, uint16_t length) {
-    addHash(crc, length);
-    while (length--) {
-        addHash(crc, *data++);
+    while (length > 0) {
+        addHash(crc, *data);
+        data++;
+        length--;
     }
 }
 
