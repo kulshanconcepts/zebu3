@@ -72,13 +72,13 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	physicalMemory.initialize(kernelStart, kernelSize, pageSize);
 
-	logger.info(MODULE, "Starting with %d KB free of %d KB total memory.\n", physicalMemory.getFreeMemory() >> 10, physicalMemory.getTotalMemory() >> 10);
+	logger.info(MODULE, "Starting with %d KB free of %d KB total memory.", physicalMemory.getFreeMemory() >> 10, physicalMemory.getTotalMemory() >> 10);
 
 	KernelHeap heap(&physicalMemory);
 
-	logger.info(MODULE, "Kernel heap has %d bytes free and %d bytes used.\n", heap.getFreeBytes(), heap.getUsedBytes());
+	logger.info(MODULE, "Kernel heap has %d bytes free and %d bytes used.", heap.getFreeBytes(), heap.getUsedBytes());
 
-	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.\n", kernelStart, kernelSize >> 10);
+	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.", kernelStart, kernelSize >> 10);
 
 	Exceptions exceptions;
 
