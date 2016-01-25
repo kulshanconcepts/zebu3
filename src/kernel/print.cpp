@@ -1,27 +1,17 @@
 // Copyright (C) 2016 Kulshan Concepts. All rights reserved.
-#include <stdarg.h>
-
 #include "print.h"
-#include "uart.h"
 #include "string.h"
 
-void kprint(const char* message) {
-	Uart::getInstance()->puts(message);
-}
-
-void kprintf(const char* format, ...) {
-	va_list args;
-	va_start(args, format);
-
-	const int MAX_BUFFER = 1024;
-	char buffer[MAX_BUFFER+1];
+void vsnprintf(char* buffer, size_t bufferSize, const char* format, va_list args) {
 	size_t idx = 0;
 	enum {
 		NORMAL,
 		BEGIN
 	} state = NORMAL;
 
-	while (*format && idx <= MAX_BUFFER) {
+	size_t maxIndex = bufferSize - 1;
+
+	while (*format && idx < maxIndex) {
 		switch (state) {
 			case NORMAL:
 				if (*format == '%') {
@@ -40,7 +30,7 @@ void kprintf(const char* format, ...) {
 					while (*p) {
 						buffer[idx++] = *p;
 						p++;
-						if (idx >= MAX_BUFFER) break;
+						if (idx >= maxIndex) break;
 					}
 
 					state = NORMAL;
@@ -52,7 +42,7 @@ void kprintf(const char* format, ...) {
 					while (*p) {
 						buffer[idx++] = *p;
 						p++;
-						if (idx >= MAX_BUFFER) break;
+						if (idx >= maxIndex) break;
 					}
 
 					state = NORMAL;
@@ -64,7 +54,7 @@ void kprintf(const char* format, ...) {
 					while (*p) {
 						buffer[idx++] = *p;
 						p++;
-						if (idx >= MAX_BUFFER) break;
+						if (idx >= maxIndex) break;
 					}
 
 					state = NORMAL;
@@ -77,8 +67,5 @@ void kprintf(const char* format, ...) {
 		format++;
 	}
 
-	va_end(args);
-
 	buffer[idx] = 0;
-	kprint(buffer);
 }

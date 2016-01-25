@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 
-void kprint(const char* message);
-void kprintf(const char* format, ...);
-
+void vsnprintf(char* buffer, size_t bufferSize, const char* format, va_list args);

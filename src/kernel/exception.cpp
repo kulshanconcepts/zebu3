@@ -1,7 +1,6 @@
 // Copyright (c) 2016 Kulshan Concepts. All rights reserved.
 
 #include "exception.h"
-#include "print.h"
 #include "mmio.h"
 
 /** Get the CPSR register
@@ -36,7 +35,7 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 		// TODO: call a handler based on what index was specified (now in "swi")
 		(void) swi;
 	} else if (type != ARM4_XRQ_IRQ && type != ARM4_XRQ_FIQ) {
-		kprint("Unhandled exception; stop.");
+		//kprint("Unhandled exception; stop.");
 		while (1) { }
 	}
 }
@@ -86,4 +85,3 @@ Exceptions::Exceptions() {
 void Exceptions::enableExceptions() {
 	enableIRQ();
 }
-
