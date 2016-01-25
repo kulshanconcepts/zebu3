@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #include "uart.h"
-#include "print.h"
 #include "atag.h"
 #include "sdp.h"
 
