@@ -6,7 +6,13 @@ CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra -I../s
 
 OBJECTS=boot.o ../shared-boot/csupport.o ../shared-boot/atag.o ../shared-boot/string.o ../shared-boot/mmio.o ../shared-boot/uart.o print.o memory.o exception.o kernel.o logger.o sdp.o
 
-all: kernel.bin
+ifeq ($(CI_BUILD),yes)
+CISTUFF=.DOXYGEN .PUBLISH
+else
+CISTUFF=
+endif
+
+all: kernel.bin $(CISTUFF)
 
 clean:
 	-rm kernel.bin kernel.elf $(OBJECTS)
@@ -25,4 +31,14 @@ kernel.elf: $(OBJECTS)
 
 kernel.bin: kernel.elf
 	$(OBJCOPY) kernel.elf -O binary kernel.bin
+
+.PUBLISH:
+	-mkdir ../../out
+	cp kernel.bin ../../out/kernel.img
+
+.DOXYGEN:
+	-mkdir ../../out
+	-mkdir ../../out/doxygen
+	-mkdir ../../out/doxygen/kernel
+	doxygen kernel.Doxyfile
 
