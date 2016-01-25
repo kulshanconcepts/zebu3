@@ -1,0 +1,7 @@
+*.gz
+/binutils
+/gcc
+/gdb
+/build-binutils
+/build-gcc
+/build-gdb
