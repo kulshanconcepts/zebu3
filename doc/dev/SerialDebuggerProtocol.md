@@ -171,4 +171,12 @@ an error using this message.
 The recipient of this message must assume that whatever operation was currently
 taking place has been terminated.
 
+### Acknowledge File Data (`09`)
+
+```
+uint16_t length
+```
+
+Acknowledge that `length` bytes of file data was received, ready to accept more.
+
 ###### Copyright &copy; 2016 Kulshan Concepts. All rights reserved.

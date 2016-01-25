@@ -62,7 +62,7 @@ bool Serial::isOpen() const {
 void Serial::write(const char* data, size_t length) {
     ssize_t bw = 0;
     logger.debug(MODULE, "Writing %u bytes", length);
-    while ((size_t)bw < length) {
+    while (length > 0) {
         waitToWrite();
         bw  = ::write(fd, data, length);
         if (-1 == bw) {

@@ -220,6 +220,12 @@ bool BootloaderSdp::getKernel() {
 
 		m[23]++;
 
+		startMessage(MESSAGE_FILE_DATA_ACK);
+		startHash(hash, MESSAGE_FILE_DATA_ACK);
+		send(len);
+		addHash(hash, len);
+		send(hash);
+
         kernel += len;
         size -= len;
     }

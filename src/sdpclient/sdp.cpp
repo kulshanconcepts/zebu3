@@ -9,7 +9,7 @@
 #define SDP_VERSION 1
 
 SdpClient::SdpClient(Serial& serial, Logger& logger, const std::string& kernelFile)
-        : serial(serial), logger(logger), kernelFile(kernelFile), stop(false), running(true) {
+        : serial(serial), logger(logger), kernelFile(kernelFile), stop(false), running(true), fp(nullptr), fileSize(0) {
     logger.debug(MODULE, "Starting SDP processing thread");
     pthread_create(&thread, nullptr, startThread, (void*)this);
 }
@@ -63,6 +63,9 @@ void SdpClient::run() {
                     break;
                 case MESSAGE_REQUEST_KERNEL:
                     processRequestKernel();
+                    break;
+                case MESSAGE_FILE_DATA_ACK:
+                    processFileDataAck(false);
                     break;
                 default:
                     logger.warning(MODULE, "Message parsing isn't implemented for %02X!", (unsigned int)type);
@@ -145,7 +148,7 @@ void SdpClient::processRequestKernel() {
     if (verifyRecvHash()) {
         logger.info(MODULE, "Server has requested kernel.");
 
-        FILE* fp = fopen(kernelFile.c_str(), "rb");
+        fp = fopen(kernelFile.c_str(), "rb");
         if (fp == nullptr) {
             logger.error(MODULE, "Could not open kernel file.");
             sendError("Could not open kernel file.");
@@ -153,7 +156,7 @@ void SdpClient::processRequestKernel() {
         }
 
         fseek(fp, 0L, SEEK_END);
-        size_t size = ftell(fp);
+        fileSize = ftell(fp);
         fseek(fp, 0L, SEEK_SET);
 
         std::string fileName;
@@ -169,33 +172,52 @@ void SdpClient::processRequestKernel() {
         size_t len = fileName.size();
         appendMessage(infoMessage, (uint16_t)len);
         appendMessage(infoMessage, fileName.c_str(), len);
-        appendMessage(infoMessage, (uint32_t)size);
+        appendMessage(infoMessage, (uint32_t)fileSize);
         sendMessage(infoMessage);
 
-        logger.info(MODULE, "Sending %u-byte kernel file to server.", size);
-
-        uint8_t buffer[4096];
-        while (size > 0) {
-            size_t br = fread(buffer, 1, 4096, fp);
-            size -= br;
-
-            logger.debug(MODULE, "Read %u bytes from kernel file.", br);
-
-            if (br == 0 && size != 0) {
-                logger.error(MODULE, "There was a problem (errno=%d) reading the kernel file.", ferror(fp));
-                sendError("Problem reading kernel file");
-            }
-
-            SdpMessage dataMessage = startMessage(MESSAGE_FILE_DATA);
-            appendMessage(dataMessage, (uint16_t)br);
-            appendMessage(dataMessage, buffer, br);
-            sendMessage(dataMessage);
-        }
-
-        logger.info(MODULE, "Kernel has been sent.");
-
-        fclose(fp);
+        processFileDataAck(true);
     }
+}
+
+void SdpClient::processFileDataAck(bool skipReading) {
+    if (fileSize == 0) {
+        fclose(fp);
+        fp = nullptr;
+        logger.info(MODULE, "Kernel has been sent.");
+        return;
+    }
+
+    if (!skipReading) {
+        uint16_t len;
+        readExactly(&len, 2);
+        addRecvHash(len);
+
+        if (!verifyRecvHash()) {
+            fclose(fp);
+            fp = nullptr;
+            logger.error(MODULE, "Corrupted data from server.");
+            return;
+        }
+    }
+
+    uint8_t buffer[4096];
+    size_t br = fread(buffer, 1, 4096, fp);
+    fileSize -= br;
+
+    logger.debug(MODULE, "Read %u bytes from kernel file.", br);
+
+    if (br == 0 && fileSize != 0) {
+        logger.error(MODULE, "There was a problem (errno=%d) reading the kernel file.", ferror(fp));
+        sendError("Problem reading kernel file");
+        fclose(fp);
+        fp = nullptr;
+        return;
+    }
+
+    SdpMessage dataMessage = startMessage(MESSAGE_FILE_DATA);
+    appendMessage(dataMessage, (uint16_t)br);
+    appendMessage(dataMessage, buffer, br);
+    sendMessage(dataMessage);
 }
 
 void SdpClient::sendError(const char* info) {

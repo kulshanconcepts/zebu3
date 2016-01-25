@@ -18,6 +18,7 @@ enum MessageType : uint8_t {
     MESSAGE_FILE_INFO,
     MESSAGE_FILE_DATA,
     MESSAGE_ERROR,
+    MESSAGE_FILE_DATA_ACK,
     MAX_MESSAGE
 };
 
@@ -36,6 +37,8 @@ private:
     volatile bool stop;
     volatile bool running;
     uint16_t recvHash;
+    FILE* fp;
+    size_t fileSize;
 
     static void* startThread(void* arg);
     void run();
@@ -63,6 +66,7 @@ private:
     void processGetVersion();
     void processLog();
     void processRequestKernel();
+    void processFileDataAck(bool skipReading);
 
 public:
     SdpClient(Serial& serial, Logger& logger, const std::string& kernelFile);

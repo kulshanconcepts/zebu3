@@ -25,7 +25,8 @@ enum MessageType : uint8_t {
     MESSAGE_REQUEST_KERNEL,
     MESSAGE_FILE_INFO,
     MESSAGE_FILE_DATA,
-    MESSAGE_ERROR
+    MESSAGE_ERROR,
+    MESSAGE_FILE_DATA_ACK
 };
 
 class BootloaderSdp {
