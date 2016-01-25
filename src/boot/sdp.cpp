@@ -30,8 +30,9 @@ BootloaderSdp::BootloaderSdp(Uart& uart, ATags& atags)
 }
 
 void BootloaderSdp::run() {
+
     while (true) {
-        connected = false;
+		connected = false;
 
         while (!connected) {
             if (ping()) {
@@ -43,14 +44,14 @@ void BootloaderSdp::run() {
         log(LEVEL_INFO, MODULE_BOOTLOADER, "Connected to SDP client.");
 
         if (!checkVersion()) {
-            continue;
+            while (1) {};
         }
 
         log(LEVEL_INFO, MODULE_BOOTLOADER,
             "SDP versions are compatible. Requesting kernel.");
 
         if (!getKernel()) {
-            continue;
+            while (1) {};
         }
 
         log(LEVEL_INFO, MODULE_BOOTLOADER,
@@ -159,6 +160,8 @@ bool BootloaderSdp::getKernel() {
     }
 
     if (type != MESSAGE_FILE_INFO) {
+		log(LEVEL_FATAL, MODULE_BOOTLOADER,
+			"Did not get information about kernel.");
         return false;
     }
 
@@ -173,6 +176,8 @@ bool BootloaderSdp::getKernel() {
     addHash(hash, size);
 
     if (get16() != hash) {
+		log(LEVEL_FATAL, MODULE_BOOTLOADER,
+			"Hash of kernel information did not match.");
         return false;
     }
 
@@ -181,10 +186,14 @@ bool BootloaderSdp::getKernel() {
     // Now expect some MESSAGE_FILE_DATA messages!
     while (size > 0) {
         if (!getMessageStart(type)) {
+			log(LEVEL_FATAL, MODULE_BOOTLOADER,
+				"Didn't get expected file data message.");
             return false;
         }
 
         if (type != MESSAGE_FILE_DATA) {
+			log(LEVEL_FATAL, MODULE_BOOTLOADER,
+				"Got wrong message type expecting file data.");
             return false;
         }
 
@@ -194,9 +203,22 @@ bool BootloaderSdp::getKernel() {
         get(kernel, len);
         addHash(hash, kernel, len);
 
+		const char* hex = "0123456789ABCDEF";
+		char* m = (char*)"???? Hash of file data 0 did not match.";
+
+		uint16_t tmp = len;
+		m[3] = hex[tmp & 0xF];
+		m[2] = hex[(tmp >> 4) & 0xF];
+		m[1] = hex[(tmp >> 8) & 0xF];
+		m[0] = hex[(tmp >> 12) & 0xF];
+
         if (get16() != hash) {
+			log(LEVEL_FATAL, MODULE_BOOTLOADER,
+				m);
             return false;
         }
+
+		m[23]++;
 
         kernel += len;
         size -= len;
@@ -236,8 +258,10 @@ void BootloaderSdp::addHash(uint16_t& crc, uint8_t datum) {
 
 void BootloaderSdp::addHash(uint16_t& crc, uint8_t* data, uint16_t length) {
     addHash(crc, length);
-    while (length--) {
-        addHash(crc, *data++);
+    while (length != 0) {
+        addHash(crc, *data);
+		length--;
+		data++;
     }
 }
 
@@ -311,7 +335,9 @@ uint32_t BootloaderSdp::get32() {
 }
 
 void BootloaderSdp::get(uint8_t* data, uint16_t length) {
-    while (length--) {
-        *data++ = uart.getc();
+    while (length != 0) {
+        *data = uart.getc();
+		data++;
+		length--;
     }
 }
