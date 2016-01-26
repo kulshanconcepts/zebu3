@@ -1,4 +1,4 @@
-all: ../../bin/arm-none-eabi-gcc ../../bin/arm-none-eabi-gdb
+all: ../../bin/arm-none-eabi-gcc #../../bin/arm-none-eabi-gdb
 
 clean:
 	-rm -rf build-gcc build-binutils build-gdb ../../bin/arm-none-eabi-* ../../arm-none-eabi
