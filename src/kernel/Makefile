@@ -1,8 +1,8 @@
 CC=../../bin/arm-none-eabi-gcc
 CXX=../../bin/arm-none-eabi-g++
 OBJCOPY=../../bin/arm-none-eabi-objcopy
-CFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=gnu99 -Wall -Wextra -I../shared-boot/
-CXXFLAGS=-mcpu=arm1176jzf-s -fpic -ffreestanding -std=c++11 -Wall -Wextra -I../shared-boot/
+CFLAGS=-mcpu=cortex-a7 -mfpu=vfpv4 -fpic -ffreestanding -std=gnu99 -Wall -Wextra -I../shared-boot/
+CXXFLAGS=-mcpu=cortex-a7 -mfpu=vfpv4 -fpic -ffreestanding -std=c++11 -Wall -Wextra -I../shared-boot/
 
 OBJECTS=boot.o ../shared-boot/csupport.o ../shared-boot/atag.o ../shared-boot/string.o ../shared-boot/mmio.o ../shared-boot/uart.o print.o memory.o exception.o kernel.o logger.o sdp.o
 
@@ -41,4 +41,3 @@ kernel.bin: kernel.elf
 	-mkdir ../../out/doxygen
 	-mkdir ../../out/doxygen/kernel
 	doxygen kernel.Doxyfile
-
