@@ -1,4 +1,4 @@
-all: .SRC .UTIL
+all: .UTIL .SRC
 
 .SRC:
 	$(MAKE) -C src
