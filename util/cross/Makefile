@@ -1,4 +1,4 @@
-all: ../../bin/arm-none-eabi-gcc #../../bin/arm-none-eabi-gdb
+all: ../../bin/arm-none-eabi-gcc
 
 clean:
 	-rm -rf build-gcc build-binutils build-gdb ../../bin/arm-none-eabi-* ../../arm-none-eabi
@@ -35,4 +35,3 @@ binutils-2.25.1.tar.gz:
 
 gdb-7.10.1.tar.gz:
 	wget -nv http://ftp.gnu.org/gnu/gdb/gdb-7.10.1.tar.gz
-

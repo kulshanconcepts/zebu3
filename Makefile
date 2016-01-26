@@ -1,12 +1,12 @@
-all: .UTIL .SRC
+all: .UTIL .KERNEL
 
-.SRC:
-	$(MAKE) -C src
+.KERNEL:
+	$(MAKE) -C kernel
 
 .UTIL:
 	$(MAKE) -C util
 
 clean:
-	$(MAKE) -C src clean
+	$(MAKE) -C kernel clean
 	$(MAKE) -C util clean
 
