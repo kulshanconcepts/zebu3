@@ -7,7 +7,7 @@ CXXFLAGS=-mcpu=cortex-a7 -mfpu=vfpv4 -fpic -ffreestanding -std=c++11 -Wall -Wext
 OBJECTS=boot.o ../shared-boot/csupport.o ../shared-boot/atag.o ../shared-boot/string.o ../shared-boot/mmio.o ../shared-boot/uart.o print.o memory.o exception.o kernel.o logger.o sdp.o
 
 ifeq ($(CI_BUILD),yes)
-CISTUFF=.DOXYGEN .PUBLISH
+CISTUFF=.DOXYGEN .PUBLISH .CPPCHECK
 else
 CISTUFF=
 endif
@@ -41,3 +41,9 @@ kernel.bin: kernel.elf
 	-mkdir ../../out/doxygen
 	-mkdir ../../out/doxygen/kernel
 	doxygen kernel.Doxyfile
+
+.CPPCHECK:
+	-mkdir ../../out
+	-mkdir ../../out/cppcheck
+	cppcheck -I../shared-boot --std=c++11 --std=c99 --platform=unix64 -xml --xml-version=2 2>../../out/cppcheck/kernel.xml
+
