@@ -45,4 +45,4 @@ kernel.bin: kernel.elf
 .CPPCHECK:
 	-mkdir ../../out
 	-mkdir ../../out/cppcheck
-	cppcheck -I../shared-boot --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../../out/cppcheck/kernel.xml
+	cppcheck -I../shared-boot --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../../out/cppcheck/kernel.xml .
