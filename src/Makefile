@@ -1,5 +1,5 @@
 ifeq ($(CI_BUILD),yes)
-CISTUFF=.SONAR
+CISTUFF=
 else
 CISTUFF=
 endif
