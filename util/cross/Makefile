@@ -6,26 +6,29 @@ clean:
 distclean: clean
 	-rm -rf gcc binutils gdb
 
-../../bin/arm-none-eabi-gcc: ../../bin/arm-none-eabi-as gcc
+../../bin/arm-none-eabi-gcc: ../../bin/arm-none-eabi-as gcc/.extracted
 	TARGET="arm-none-eabi" ./build-gcc.sh
 
-../../bin/arm-none-eabi-as: binutils
+../../bin/arm-none-eabi-as: binutils/.extracted
 	TARGET="arm-none-eabi" ./build-binutils.sh
 
-../../bin/arm-none-eabi-gdb: gdb
+../../bin/arm-none-eabi-gdb: gdb/.extracted
 	TARGET="arm-none-eabi" ./build-gdb.sh
 
-gcc: gcc-5.3.0.tar.gz
-	-mkdir gcc
+gcc/.extracted: gcc-5.3.0.tar.gz
+	test -d gcc || mkdir gcc
 	tar -xzf gcc-5.3.0.tar.gz -C gcc --strip-components=1
+	touch $@
 
-binutils: binutils-2.25.1.tar.gz
-	-mkdir binutils
+binutils/.extracted: binutils-2.25.1.tar.gz
+	test -d binutils || mkdir binutils
 	tar -xzf binutils-2.25.1.tar.gz -C binutils --strip-components=1
+	touch $@
 
-gdb: gdb-7.10.1.tar.gz
-	-mkdir gdb
+gdb/.extracted: gdb-7.10.1.tar.gz
+	test -d gdb || mkdir gdb
 	tar -xzf gdb-7.10.1.tar.gz -C gdb --strip-components=1
+	touch $@
 
 gcc-5.3.0.tar.gz:
 	wget -nv http://mirrors-usa.go-parts.com/gcc/releases/gcc-5.3.0/gcc-5.3.0.tar.gz
