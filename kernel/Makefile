@@ -30,5 +30,9 @@ lib:
 out:
 	test -d out || mkdir out
 
+.DOXYGEN: out
+	test -d out/doxygen || mkdir out/doxygen
+	doxygen kernel.Doxyfile
+
 .SONAR:
 	/opt/sonar-scanner/bin/sonar-runner -X

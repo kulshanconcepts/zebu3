@@ -6,7 +6,7 @@ CXXFLAGS += -I./include -I../shared-boot/include
 OBJECTS=boot.o print.o memory.o exception.o kernel.o logger.o sdp.o
 
 ifeq ($(CI_BUILD),yes)
-CISTUFF=.DOXYGEN .PUBLISH .CPPCHECK
+CISTUFF=.CPPCHECK
 else
 CISTUFF=
 endif
@@ -31,14 +31,8 @@ kernel.elf: $(addprefix obj/, $(OBJECTS)) ../lib/libshared-boot.a
 kernel.bin: kernel.elf
 	$(OBJCOPY) kernel.elf -O binary kernel.bin
 
-.PUBLISH:
-#	cp kernel.bin ../../out/kernel.img
-
-.DOXYGEN:
-#	doxygen kernel.Doxyfile
-
 .CPPCHECK:
-#	cppcheck -I../shared-boot --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../../out/cppcheck/kernel.xml .
+	cppcheck -I../inlcude -I../../shared-boot.include --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../out/cppcheck/kernel.xml src
 
 obj:
 	test -d obj || mkdir obj
