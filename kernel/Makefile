@@ -1,6 +1,12 @@
 export CI_BUILD
 
-all: lib out out/kernel.bin out/bootloader.bin
+ifeq ($(CI_BUILD),yes)
+CISTUFF=.DOXYGEN .SONAR
+else
+CISTUFF=
+endif
+
+all: lib out out/kernel.bin out/bootloader.bin $(CISTUFF)
 
 clean:
 	$(MAKE) -C shared-boot clean

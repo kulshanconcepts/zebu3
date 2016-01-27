@@ -32,9 +32,9 @@ kernel.bin: kernel.elf
 	$(OBJCOPY) kernel.elf -O binary kernel.bin
 
 .CPPCHECK:
-	-mkdir ../out
-	-mkdir ../out/cppcheck
-	cppcheck -I../include -I../../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../out/cppcheck/kernel.xml src
+	test -d ../out || mkdir ../out
+	test -d ../out/cppcheck || mkdir ../out/cppcheck
+	cppcheck -Iinclude -I../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../out/cppcheck/kernel.xml src
 
 obj:
 	test -d obj || mkdir obj
