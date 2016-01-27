@@ -34,7 +34,7 @@ kernel.bin: kernel.elf
 .CPPCHECK:
 	-mkdir ../out
 	-mkdir ../out/cppcheck
-	cppcheck -I../include -I../../shared-boot.include --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../out/cppcheck/kernel.xml src
+	cppcheck -I../include -I../../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --xml --xml-version=2 2>../out/cppcheck/kernel.xml src
 
 obj:
 	test -d obj || mkdir obj
