@@ -34,4 +34,4 @@ obj:
 .CPPCHECK:
 	test -d ../out || mkdir ../out
 	test -d ../out/cppcheck || mkdir ../out/cppcheck
-	cppcheck -Iinclude --std=c++11 --std=c99 --platform=unix64 --enable=all --xml --xml-version=2 2>../out/cppcheck/shared-boot.xml src
+	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude --std=c++11 --std=c99 --platform=unix64 --enable=all --xml --xml-version=2 2>../out/cppcheck/shared-boot.xml src
