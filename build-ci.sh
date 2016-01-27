@@ -1,2 +1,1 @@
-export CI_BUILD="yes"
-make
+CI_BUILD="yes" make

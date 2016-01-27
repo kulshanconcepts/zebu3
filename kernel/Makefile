@@ -1,3 +1,5 @@
+export CI_BUILD
+
 all: lib out out/kernel.bin out/bootloader.bin
 
 clean:

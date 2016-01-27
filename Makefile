@@ -1,3 +1,5 @@
+export CI_BUILD
+
 all: .UTIL .KERNEL
 
 .KERNEL:
@@ -9,4 +11,3 @@ all: .UTIL .KERNEL
 clean:
 	$(MAKE) -C kernel clean
 	$(MAKE) -C util clean
-

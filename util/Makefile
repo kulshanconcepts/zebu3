@@ -1,3 +1,5 @@
+export CI_BUILD
+
 all: .CROSS .SDPCLIENT
 
 .SDPCLIENT:
