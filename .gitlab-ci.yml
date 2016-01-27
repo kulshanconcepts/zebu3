@@ -1,17 +1,4 @@
-cache:
-  paths:
-  - util/
-  - bin/
-  - arm-non-eabi/
-  - include/
-  - lib/
-  - lib64/
-  - libexec/
-  - share/
-  - var/
-
 build:
   script: "bash build-ci.sh"
   only:
     - master@kulshan-concepts/zebu3
-

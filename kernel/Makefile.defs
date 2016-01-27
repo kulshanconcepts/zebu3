@@ -1,5 +1,9 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+ifeq ($(CI_BUILD),yes)
+BINPREFIX:=/opt/cross/bin/arm-none-eabi-
+else
 BINPREFIX:=$(ROOT_DIR)/../bin/arm-none-eabi-
+endif
 
 AR=$(BINPREFIX)ar
 CC=$(BINPREFIX)gcc
