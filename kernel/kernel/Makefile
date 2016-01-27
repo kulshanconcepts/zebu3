@@ -32,9 +32,7 @@ kernel.bin: kernel.elf
 	$(OBJCOPY) kernel.elf -O binary kernel.bin
 
 .CPPCHECK:
-	test -d ../out || mkdir ../out
-	test -d ../out/cppcheck || mkdir ../out/cppcheck
-	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude -I../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --enable=all --force --xml --xml-version=2 src 2>../out/cppcheck/kernel.xml
+	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude -I../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --enable=all --force --xml --xml-version=2 src 2>cppcheck.xml
 
 obj:
 	test -d obj || mkdir obj
