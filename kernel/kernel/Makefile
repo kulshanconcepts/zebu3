@@ -34,7 +34,7 @@ kernel.bin: kernel.elf
 .CPPCHECK:
 	test -d ../out || mkdir ../out
 	test -d ../out/cppcheck || mkdir ../out/cppcheck
-	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude -I../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --enable=all --xml --xml-version=2 2>../out/cppcheck/kernel.xml src
+	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude -I../shared-boot/include --std=c++11 --std=c99 --platform=unix64 --enable=all --force --xml --xml-version=2 src 2>../out/cppcheck/kernel.xml
 
 obj:
 	test -d obj || mkdir obj
