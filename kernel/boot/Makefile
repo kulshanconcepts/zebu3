@@ -11,7 +11,7 @@ else
 CISTUFF=
 endif
 
-all: obj bootloader.bin
+all: obj bootloader.bin $(CISTUFF)
 
 clean:
 	-rm -rf bootloader.bin bootloader.elf obj
