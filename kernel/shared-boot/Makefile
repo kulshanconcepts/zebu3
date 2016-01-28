@@ -58,4 +58,4 @@ obj:
 	test -d obj || mkdir obj
 
 .CPPCHECK:
-	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude --std=c++11 --std=c99 --platform=unix64 --enable=all --force --xml --xml-version=2 src 2>cppcheck.xml
+	cppcheck -I/opt/cross/lib/gcc/arm-none-eabi/5.3.0/include -Iinclude $(CPPCHECKFLAGS) src 2>cppcheck.xml
