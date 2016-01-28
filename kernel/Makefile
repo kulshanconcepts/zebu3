@@ -32,6 +32,10 @@ else
 CISTUFF=
 endif
 
+export CPPCHECKFLAGS= --std=c++11 --std=c99 --platform=unix64 --enable=all --force --xml --xml-version=2 \
+ 	-D__INTPTR_TYPE__ -D__UINT16_TYPE__ -D__UINT32_TYPE__ -D__UINT64_TYPE__ -D_TYPE_ptrdiff_t \
+	-D_TYPE_size_t -D_TYPE_wchar_t -D__INT8_TYPE__ -D__UINT8_TYPE__ -D__UINTPTR_TYPE__
+
 all: lib out out/kernel.bin out/bootloader.bin $(CISTUFF)
 
 clean:
