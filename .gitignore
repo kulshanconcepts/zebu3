@@ -1,7 +1,7 @@
 /.project
 /bin
 /arm-none-eabi
-/include
+/include/gdb
 /lib
 /lib64
 /libexec

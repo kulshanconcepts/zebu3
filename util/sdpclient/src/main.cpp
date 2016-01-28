@@ -34,8 +34,10 @@
 #include "sdp.h"
 #include "serial.h"
 #include "logger.h"
+#include "version.h"
 
 void usage(const char* name) {
+    fprintf(stderr, PRODUCT_NAME " SDP Client " PRODUCT_VERSION_STR "\n" );
     fprintf(stderr, "usage:\n");
     fprintf(stderr, " %s <options> <device>\n", name);
     fprintf(stderr, "\n");

@@ -2057,6 +2057,7 @@ SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = shared-boot/include \
                          kernel/include \
                          boot/include \
+                         ../include \
                          /opt/cross/lib/gcc/arm-none-eabi/5.3.0/include
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard

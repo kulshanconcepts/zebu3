@@ -24,7 +24,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-CXXFLAGS=-O2 -W -Wall -std=c++11 -I./include
+CXXFLAGS=-O2 -W -Wall -std=c++11 -I./include -I../../include
 OBJECTS=sdp.o main.o serial.o logger.o
 
 all: obj sdpclient

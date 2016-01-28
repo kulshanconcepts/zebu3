@@ -35,6 +35,7 @@
 #include "exception.h"
 #include "logger.h"
 #include "sdp.h"
+#include "version.h"
 
 extern "C" uint32_t __start;
 extern "C" uint32_t __end;
@@ -57,7 +58,8 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	Logger logger(sdpServer);
 
-	logger.info(MODULE, "Kernel is starting with parameters %X %X %X", r0, r1, atagsAddress);
+	logger.info(MODULE, PRODUCT_NAME " " PRODUCT_VERSION_STR
+			": kernel is starting with parameters %X %X %X", r0, r1, atagsAddress);
 
 	logger.debug(MODULE, "Reading ATAG information from %X...", atagsAddress);
 

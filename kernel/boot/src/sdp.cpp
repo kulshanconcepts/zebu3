@@ -27,6 +27,7 @@
 
 #include "sdp.h"
 #include "string.h"
+#include "version.h"
 
 #define MODULE_BOOTLOADER "BootLoader"
 
@@ -66,7 +67,7 @@ void BootloaderSdp::run() {
             rest();
         }
 
-        log(LEVEL_INFO, MODULE_BOOTLOADER, "Connected to SDP client.");
+        log(LEVEL_INFO, MODULE_BOOTLOADER, "Bootloader for " PRODUCT_NAME " " PRODUCT_VERSION_STR ". Connected to SDP client.");
 
         if (!checkVersion()) {
             while (1) {};

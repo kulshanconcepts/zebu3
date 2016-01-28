@@ -26,8 +26,8 @@
 
 include ../Makefile.defs
 
-CFLAGS += -I./include -I../shared-boot/include
-CXXFLAGS += -I./include -I../shared-boot/include
+CFLAGS += -I./include -I../shared-boot/include -I../../include
+CXXFLAGS += -I./include -I../shared-boot/include -I../../include
 
 OBJECTS=boot.o sdp.o kernel.o
 
