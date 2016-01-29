@@ -44,22 +44,22 @@ clean:
 	$(MAKE) -C kernel clean
 	-rm -rf out lib
 
-lib/libshared-boot.a: shared-boot/libshared-boot.a
+lib/libshared-boot.a: .SHARED_BOOT
 	cp shared-boot/libshared-boot.a $@
 
-shared-boot/libshared-boot.a:
+.SHARED_BOOT:
 	$(MAKE) -C shared-boot
 
-out/kernel.bin: kernel/kernel.bin
-	cp kernel/kernel.bin $@
+out/kernel.bin: .KERNEL
+	cp kernel/kernel.bin out/kernel.bin
 
-kernel/kernel.bin: lib/libshared-boot.a
+.KERNEL: .SHARED_BOOT
 	$(MAKE) -C kernel
 
-out/bootloader.bin: boot/bootloader.bin
-	cp $< $@
+out/bootloader.bin: .BOOTLOADER
+	cp boot/bootloader.bin out/bootloader.bin
 
-boot/bootloader.bin:
+.BOOTLOADER: .SHARED_BOOT
 	$(MAKE) -C boot
 
 lib:
