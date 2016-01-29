@@ -26,9 +26,114 @@
  */
 
 #include "thread.h"
+#include "memory.h"
 
+#define ARM4_MODE_USER   0x10
+#define ARM4_MODE_FIQ	 0x11
+#define ARM4_MODE_IRQ	 0x12
+#define ARM4_MODE_SUPER  0x13
+#define ARM4_MODE_ABORT	 0x17
+#define ARM4_MODE_UNDEF  0x1b
+#define ARM4_MODE_SYS    0x1f
+#define ARM4_MODE_MON    0x16
 
 Thread* Thread::currentThread = nullptr;
 
 Thread* Thread::runnable = nullptr;
 Thread* Thread::blocked = nullptr;
+
+static void idleThread() {
+    while (1) {
+        asm("wfi"); // sleep until interrupt
+    }
+}
+
+void Thread::initialize() {
+    create((void*)idleThread);
+}
+
+Thread::Thread(void* pc) : prev(nullptr), next(nullptr) {
+    PhysicalMemory* memory = PhysicalMemory::getInstance();
+    this->stackPage = memory->allocatePage();
+
+    this->pc = (uint32_t)pc;
+    this->sp = stackPage + memory->getPageSize() - 4;
+    this->cpsr = 0x60000000 | ARM4_MODE_USER;
+}
+
+Thread* Thread::create(void* pc) {
+    Thread* thread = new Thread(pc);
+
+    run(thread);
+
+    return thread;
+}
+
+void Thread::run(Thread* thread) {
+    // remove it from whatever list it's in now, if any
+    if (thread->next != nullptr) {
+        thread->next->prev = thread->prev;
+    }
+    if (thread->prev != nullptr) {
+        thread->prev->next = thread->next;
+    }
+    // TODO: check any other lists we make
+    if (blocked == thread) {
+        blocked = thread->next;
+    }
+
+    thread->next = runnable;
+    thread->prev = nullptr;
+
+    if (runnable != nullptr) {
+        runnable->prev = thread;
+    }
+
+    runnable = thread;
+}
+
+void Thread::block(Thread* thread) {
+    // remove it from whatever list it's in now, if any
+    if (thread->next != nullptr) {
+        thread->next->prev = thread->prev;
+    }
+    if (thread->prev != nullptr) {
+        thread->prev->next = thread->next;
+    }
+    // TODO: check any other lists we make
+    if (runnable == thread) {
+        runnable = thread->next;
+    }
+
+    thread->next = blocked;
+    thread->prev = nullptr;
+
+    if (blocked != nullptr) {
+        blocked->prev = thread;
+    }
+
+    blocked = thread;
+}
+
+Thread* Thread::getNextReady() {
+    if (currentThread == runnable) {
+        // current thread is at the head of the list, means it's already running
+        // we'll rotate the list and get the next one
+        Thread* end = runnable;
+        while (end->next != nullptr) {
+            end = end->next;
+        }
+
+        if (end != runnable) {
+            end->next = runnable;
+            runnable->prev = end;
+            Thread* newGuy = runnable->next;
+            runnable->next = nullptr;
+            runnable = newGuy;
+            newGuy->prev = nullptr;
+        }
+    }
+
+    currentThread = runnable;
+    return currentThread;
+}

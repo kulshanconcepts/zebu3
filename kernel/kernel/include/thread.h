@@ -36,15 +36,27 @@ private:
     static Thread* runnable;
     static Thread* blocked;
 
-    Thread(void* pc, void* spUser, void* spKernel);
+    Thread(void* pc);
+
+    uint32_t stackPage;
+
+    Thread* prev;
+    Thread* next;
+
+    static void run(Thread* thread);
+    static void block(Thread* thread);
 
 public:
-    static Thread* getCurrentThread();
+    static inline Thread* getCurrentThread() { return currentThread; }
     static Thread* getNextReady();
-    static Thread* create(void* pc, void* spUser, void* spKernel);
+    static Thread* create(void* pc);
+    static void initialize();
 
     // Thread state:
-    uint32_t pc;
+    union {
+        uint32_t r15;
+        uint32_t pc;
+    };
     union {
         uint32_t r14;
         uint32_t lr;

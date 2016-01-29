@@ -40,6 +40,7 @@ struct physical_block {
 
 class PhysicalMemory {
 private:
+	static PhysicalMemory* instance;
 	physical_block blocks[MAX_PHYSICAL_BLOCKS];
 	uint32_t* allocations;
 	uint32_t pageSize;
@@ -53,7 +54,8 @@ public:
 	void freePage(uint32_t address);
 	uint32_t getFreeMemory() const;
 	uint32_t getTotalMemory() const;
-	inline uint32_t getPageSize() const { return pageSize; };
+	inline uint32_t getPageSize() const { return pageSize; }
+	static inline PhysicalMemory* getInstance() { return instance; }
 };
 
 struct KernelHeapBlock {

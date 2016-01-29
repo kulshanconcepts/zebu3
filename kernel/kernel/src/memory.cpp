@@ -49,11 +49,15 @@ void memset(void* address, uint32_t value, size_t count) {
 #define ALLOC_UNSET(index) (allocations[index >> 5] &= ~(1 << (index & 0x1F))); freeCount++
 #define IS_ALLOC(index) (allocations[index >> 5] & (1 << (index & 0x1F)))
 
+PhysicalMemory* PhysicalMemory::instance = nullptr;
+
 PhysicalMemory::PhysicalMemory() : allocations(NULL), pageSize(0), freeCount(0), totalCount(0) {
 	for (size_t i = 0; i < MAX_PHYSICAL_BLOCKS; i++) {
 		blocks[i].start = UNINITIALIZED_BLOCK_START;
 		blocks[i].length = 0x00000000;
 	}
+
+	instance = this;
 }
 
 bool PhysicalMemory::addBlock(uint32_t start, uint32_t length) {
@@ -250,4 +254,20 @@ void KernelHeap::free(void* ptr) {
 
 	freeBytes += block->size + sizeof(KernelHeapBlock);
 	usedBytes -= block->size - sizeof(KernelHeapBlock);
+}
+
+void* operator new(size_t size) {
+	return KernelHeap::getInstance()->allocate(size);
+}
+
+void* operator new[](size_t size) {
+	return KernelHeap::getInstance()->allocate(size);
+}
+
+void operator delete(void* datum) {
+	KernelHeap::getInstance()->free(datum);
+}
+
+void operator delete[](void* datum) {
+	KernelHeap::getInstance()->free(datum);
 }

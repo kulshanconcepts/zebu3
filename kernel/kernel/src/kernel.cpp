@@ -36,6 +36,7 @@
 #include "logger.h"
 #include "sdp.h"
 #include "version.h"
+#include "thread.h"
 
 extern "C" uint32_t __start;
 extern "C" uint32_t __end;
@@ -109,11 +110,9 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	Exceptions exceptions;
 
-	// BEFORE CHECKIN: we need a thread or two to actually run before we enable exceptions
+	Thread::initialize(); // creates the idle thread
+
 	exceptions.enableExceptions();
 
-	logger.fatal(MODULE, "End of execution");
-
-	// TODO: can we halt or something?
-	while (true) {}
+	while (true) { asm("wfi"); } // idle forever
 }
