@@ -53,13 +53,13 @@ lib/libshared-boot.a: .SHARED_BOOT
 out/kernel.bin: .KERNEL
 	cp kernel/kernel.bin out/kernel.bin
 
-.KERNEL: .SHARED_BOOT
+.KERNEL: lib/libshared-boot.a
 	$(MAKE) -C kernel
 
 out/bootloader.bin: .BOOTLOADER
 	cp boot/bootloader.bin out/bootloader.bin
 
-.BOOTLOADER: .SHARED_BOOT
+.BOOTLOADER: lib/libshared-boot.a
 	$(MAKE) -C boot
 
 lib:
