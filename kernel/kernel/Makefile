@@ -27,7 +27,7 @@
 include ../Makefile.defs
 
 CFLAGS += -I./include -I../shared-boot/include -I../../include
-CXXFLAGS += -I./include -I../shared-boot/include -I../../include
+CXXFLAGS += -I./include -I../shared-boot/include -I../../include -fno-exceptions
 
 OBJECTS=boot.o print.o memory.o exception.o kernel.o logger.o sdp.o thread.o
 
