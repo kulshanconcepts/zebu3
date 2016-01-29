@@ -147,7 +147,7 @@ uint32_t PhysicalMemory::getFreeMemory() const {
 }
 
 KernelHeap::KernelHeap(PhysicalMemory* const physicalMemory) : physicalMemory(physicalMemory) {
-	freeBlocks = (KernelHeapBlock*)physicalMemory->allocatePage();
+	freeBlocks = reinterpret_cast<KernelHeapBlock*>(physicalMemory->allocatePage());
 	freeBlocks->size = physicalMemory->getPageSize() - sizeof(KernelHeapBlock);
 	freeBlocks->next = NULL;
 	freeBlocks->prev = NULL;
