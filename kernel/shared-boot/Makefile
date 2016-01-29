@@ -40,7 +40,7 @@ endif
 all: obj libshared-boot.a
 
 clean:
-	-rm -rf shared-boot.a obj
+	-rm -rf libshared-boot.a obj
 
 obj/%.o: src/%.S
 	$(CXX) $(CXXFLAGS) -c $< -o $@
