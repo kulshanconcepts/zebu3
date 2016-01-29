@@ -107,8 +107,8 @@ void PhysicalMemory::initialize(uint32_t kernelStart, uint32_t kernelSize, uint3
 
 	allocations = (uint32_t*)(allocFirstPage * pageSize);
 
-	// clear it out (everythign is available)
-	memset(allocations, bytesOfAllocation, 0);
+	// clear it out (everything is available)
+	memset(allocations, 0, bytesOfAllocation);
 
 	// TODO: the follow may not be true if there are holes (more than one block)
 	totalCount = totalPages;
