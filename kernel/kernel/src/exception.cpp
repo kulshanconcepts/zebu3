@@ -27,6 +27,7 @@
 
 #include "exception.h"
 #include "mmio.h"
+#include "thread.h"
 
 /** Get the CPSR register
  */
