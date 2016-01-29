@@ -109,6 +109,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	Exceptions exceptions;
 
+	// BEFORE CHECKIN: we need a thread or two to actually run before we enable exceptions
 	exceptions.enableExceptions();
 
 	logger.fatal(MODULE, "End of execution");
