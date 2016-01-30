@@ -50,6 +50,7 @@ private:
 
 public:
     Logger(SdpServer& sdpServer);
+    static inline Logger* getInstance() { return instance; }
 
     void log(LogLevel level, const char* module, const char* format, ...);
     void fatal(const char* module, const char* format, ...);
