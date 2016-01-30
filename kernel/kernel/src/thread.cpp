@@ -27,6 +27,8 @@
 
 #include "thread.h"
 #include "memory.h"
+#include "gpio.h"
+#include "mmio.h"
 
 #define ARM4_MODE_USER   0x10
 #define ARM4_MODE_FIQ	 0x11
@@ -43,8 +45,34 @@ Thread* Thread::runnable = nullptr;
 Thread* Thread::blocked = nullptr;
 
 static void idleThread() {
+    // blink LED on the Pi if we're idling
+    bool on = false;
+    uint32_t ra = mmio_read(GPIO_BASE + 0x00010);
+    ra &= ~(7 << 21);
+    ra |= 1 << 21;
+    mmio_write(GPIO_BASE + 0x00010, ra);
+
+    ra = mmio_read(GPIO_BASE + 0x0000C);
+    ra &= ~(7 << 15);
+    ra |= 1 << 15;
+    mmio_write(GPIO_BASE + 0x0000C, ra);
+
+    int counter = 0;
+
     while (1) {
-        asm("wfi"); // sleep until interrupt
+        counter++;
+        if (counter >= 2000000) {
+            if (on) {
+                mmio_write(GPIO_BASE + 0x00020, 1 << 15);
+                mmio_write(GPIO_BASE + 0x0002C, 1 << 3);
+            } else {
+                mmio_write(GPIO_BASE + 0x0002C, 1 << 15);
+                mmio_write(GPIO_BASE + 0x00020, 1 << 3);
+            }
+            counter = 0;
+            on = !on;
+        }
+        //asm("wfi"); // sleep until interrupt
     }
 }
 
@@ -59,6 +87,8 @@ Thread::Thread(void* pc) : prev(nullptr), next(nullptr) {
     this->pc = (uint32_t)pc;
     this->sp = stackPage + memory->getPageSize() - 4;
     this->cpsr = 0x60000000 | ARM4_MODE_USER;
+    this->next = nullptr;
+    this->prev = nullptr;
 }
 
 Thread* Thread::create(void* pc) {
