@@ -52,7 +52,7 @@ obj/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 kernel.elf: $(addprefix obj/, $(OBJECTS)) ../lib/libshared-boot.a
-	$(CXX) -T linker.ld -o kernel.elf -ffreestanding -O2 -nostdlib $(addprefix obj/, $(OBJECTS)) -lgcc -L../lib -lshared-boot
+	$(CXX) $(CXXFLAGS) -T linker.ld -o kernel.elf -ffreestanding -O2 -nostdlib $(addprefix obj/, $(OBJECTS)) -L../lib -lshared-boot -lgcc -lshared-boot
 
 kernel.bin: kernel.elf
 	$(OBJCOPY) kernel.elf -O binary kernel.bin
