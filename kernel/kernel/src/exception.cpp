@@ -28,6 +28,7 @@
 #include "exception.h"
 #include "mmio.h"
 #include "thread.h"
+#include "logger.h"
 
 #define VECTOR_TABLE_SIZE 32
 
@@ -103,6 +104,8 @@ void enableIRQ() {
 static bool firstSwitch = true;
 
 void exceptionHandler(uint32_t lr, uint32_t type) {
+
+	Logger::getInstance()->info("Exception", "Handing %X %X", lr, type);
 
 	if (type == EX_OFFSET_IRQ) {
 		// TODO find out which IRQ it is?
@@ -188,12 +191,8 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 		} else {
 			// unknown IRQ. do we care?
 		}
-
-		// uint32_t swi = ((uint32_t*)(lr - 4))[0] & 0xffff;
-		// // TODO: call a handler based on what index was specified (now in "swi")
-		// (void) swi;
 	} else {
-		//kprint("Unhandled exception; stop.");
+		Logger::getInstance()->fatal("Exception", "Unhandled exception");
 		while (1) { }
 	}
 }
@@ -257,10 +256,16 @@ Exceptions::Exceptions() {
 }
 
 void Exceptions::enableExceptions() {
+	Logger::getInstance()->info("Exception", "Enabling IRQs");
+
 	enableIRQ();
+
+	Logger::getInstance()->info("Exception", "Enabling timer IRQ");
 
 	// enable timer IRQ
 	mmio_write(PIC_ENABLE_BASIC_IRQ, 1 << IRQ_TIMER_1);
+
+	Logger::getInstance()->info("Exception", "Initializing timer");
 
 	// initialize timer
 	timer_last = mmio_read(TIMER_COUNTER_LOW);
