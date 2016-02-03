@@ -29,6 +29,8 @@
 #include "mmio.h"
 #include "thread.h"
 
+#define VECTOR_TABLE_SIZE 32
+
 #define TIMER_BASE 0x00003000
 
 #define TIMER_CONTROL_AND_STATUS TIMER_BASE
@@ -52,6 +54,13 @@
 #define PIC_DISABLE_IRQ_1 PIC_BASE+0x21C
 #define PIC_DISABLE_IRQ_2 PIC_BASE+0x220
 #define PIC_DISABLE_BASIC_IRQ PIC_BASE+0x224
+
+#define EX_OFFSET_UNDEFINED 1
+#define EX_OFFSET_SVCCALL 2
+#define EX_OFFSET_PREFETCH_ABORT 3
+#define EX_OFFSET_DATA_ABORT 4
+#define EX_OFFSET_IRQ 6
+#define EX_OFFSET_FIQ 7
 
 #define IRQ_TIMER_0 0x00
 #define IRQ_TIMER_1 0x01
@@ -95,90 +104,95 @@ static bool firstSwitch = true;
 
 void exceptionHandler(uint32_t lr, uint32_t type) {
 
-	if (type == IRQ_TIMER_1) {
-		// clear the IRQ
-		mmio_write(TIMER_CONTROL_AND_STATUS, 1 << 1);
+	if (type == EX_OFFSET_IRQ) {
+		// TODO find out which IRQ it is?
 
-		Thread* thread;
+		if (/*that number == */IRQ_TIMER_1) {
 
-		// The very first time we get this interrupt, we don't have registers
-		// to store.
-		if (!firstSwitch) {
-			thread = Thread::getCurrentThread();
-			thread->pc = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-1];
-			thread->r12 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-2];
-			thread->r11 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-3];
-			thread->r10 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-4];
-			thread->r9 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-5];
-			thread->r8 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-6];
-			thread->r7 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-7];
-			thread->r6 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-8];
-			thread->r5 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-9];
-			thread->r4 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-10];
-			thread->r3 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-11];
-			thread->r2 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-12];
-			thread->r1 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-13];
-			thread->r0 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-14];
-			thread->cpsr = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-15];
+			// clear the IRQ
+			mmio_write(TIMER_CONTROL_AND_STATUS, 1 << 1);
 
-			// To get the sp and lr we need to go into system mode
-			uint32_t savedSP;
-			uint32_t savedLR;
+			Thread* thread;
 
+			// The very first time we get this interrupt, we don't have registers
+			// to store.
+			if (!firstSwitch) {
+				thread = Thread::getCurrentThread();
+				thread->pc = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-1];
+				thread->r12 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-2];
+				thread->r11 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-3];
+				thread->r10 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-4];
+				thread->r9 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-5];
+				thread->r8 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-6];
+				thread->r7 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-7];
+				thread->r6 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-8];
+				thread->r5 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-9];
+				thread->r4 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-10];
+				thread->r3 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-11];
+				thread->r2 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-12];
+				thread->r1 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-13];
+				thread->r0 = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-14];
+				thread->cpsr = ((uint32_t*)KERNEL_EXCEPTION_STACK)[-15];
+
+				// To get the sp and lr we need to go into system mode
+				uint32_t savedSP;
+				uint32_t savedLR;
+
+				asm("mrs r0, cpsr \n"
+					"bic r0, r0, #0x1f \n"
+					"orr r0, r0, #0x1f \n"
+					"msr cpsr, r0 \n" /* now in system mode */
+					"mov %[sp], sp \n"
+					"mov %[lr], lr \n"
+					"bic r0, r0, #0x1f \n"
+					"orr r0, r0, #0x12 \n"
+					"msr cpsr, r0 \n" /* and back to exception mode */
+					: [sp]"=r" (savedSP), [lr]"=r" (savedLR));
+
+				thread->sp = savedSP;
+				thread->lr = savedLR;
+			}
+
+			thread = Thread::getNextReady();
+
+			firstSwitch = false;
+
+			// Now reaturing to a thread. We need to restore its registers.
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-1] = thread->pc;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-2] = thread->r12;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-3] = thread->r11;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-4] = thread->r10;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-5] = thread->r9;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-6] = thread->r8;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-7] = thread->r7;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-8] = thread->r6;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-9] = thread->r5;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-10] = thread->r4;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-11] = thread->r3;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-12] = thread->r2;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-13] = thread->r1;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-14] = thread->r0;
+			((uint32_t*)KERNEL_EXCEPTION_STACK)[-15] = thread->cpsr;
+
+			// again, we need system mode to get sp and lr
 			asm("mrs r0, cpsr \n"
 				"bic r0, r0, #0x1f \n"
 				"orr r0, r0, #0x1f \n"
 				"msr cpsr, r0 \n" /* now in system mode */
-				"mov %[sp], sp \n"
-				"mov %[lr], lr \n"
+				"mov sp, %[sp] \n"
+				"mov lr, %[lr] \n"
 				"bic r0, r0, #0x1f \n"
 				"orr r0, r0, #0x12 \n"
 				"msr cpsr, r0 \n" /* and back to exception mode */
-				: [sp]"=r" (savedSP), [lr]"=r" (savedLR));
-
-			thread->sp = savedSP;
-			thread->lr = savedLR;
+				: [sp]"=r" (thread->sp), [lr]"=r" (thread->lr));
+		} else {
+			// unknown IRQ. do we care?
 		}
 
-		thread = Thread::getNextReady();
-
-		firstSwitch = false;
-
-		// Now reaturing to a thread. We need to restore its registers.
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-1] = thread->pc;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-2] = thread->r12;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-3] = thread->r11;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-4] = thread->r10;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-5] = thread->r9;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-6] = thread->r8;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-7] = thread->r7;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-8] = thread->r6;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-9] = thread->r5;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-10] = thread->r4;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-11] = thread->r3;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-12] = thread->r2;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-13] = thread->r1;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-14] = thread->r0;
-		((uint32_t*)KERNEL_EXCEPTION_STACK)[-15] = thread->cpsr;
-
-		// again, we need system mode to get sp and lr
-		asm("mrs r0, cpsr \n"
-			"bic r0, r0, #0x1f \n"
-			"orr r0, r0, #0x1f \n"
-			"msr cpsr, r0 \n" /* now in system mode */
-			"mov sp, %[sp] \n"
-			"mov lr, %[lr] \n"
-			"bic r0, r0, #0x1f \n"
-			"orr r0, r0, #0x12 \n"
-			"msr cpsr, r0 \n" /* and back to exception mode */
-			: [sp]"=r" (thread->sp), [lr]"=r" (thread->lr));
-	}
-
-	/*else if (type == ARM4_XRQ_SWINT) {
-		uint32_t swi = ((uint32_t*)(lr - 4))[0] & 0xffff;
-		// TODO: call a handler based on what index was specified (now in "swi")
-		(void) swi;
-	} */else {
+		// uint32_t swi = ((uint32_t*)(lr - 4))[0] & 0xffff;
+		// // TODO: call a handler based on what index was specified (now in "swi")
+		// (void) swi;
+	} else {
 		//kprint("Unhandled exception; stop.");
 		while (1) { }
 	}
@@ -199,16 +213,20 @@ static void timer_update() {
 	asm("mov sp, %[ps]" : : [ps]"i" (KERNEL_EXCEPTION_STACK)); /* set sp(r13) */ \
 	asm("push {lr}"); /* save lr(r14) */ \
 	asm("push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12}"); /* save others */ \
+	asm("mrs r0, spsr"); /* get spsr to save it */ \
+	asm("push {r0}");  /* save spsr */ \
 	asm("mov %[ps], lr" : [ps]"=r" (lr)); /* get new lr */
 
 #define EXCEPTION_BOTTOM_SWI \
+	asm("pop {r0}"); /* get old value of spsr */ \
+	asm("msr spsr, r0"); /* set spsr back */ \
 	asm("pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12}"); /* restore registers */ \
 	asm("ldm sp!, {pc}^"); /* special mode to return from exception handlers */
 
 #define EXCEPTION_TOP \
 	uint32_t lr; \
 	asm("mov sp, %[ps]" : : [ps]"i" (KERNEL_EXCEPTION_STACK)); /* set sp */ \
-	asm("sub lr, lr, #4"); \
+	asm("sub lr, lr, #4"); /* adjust as per Table B1-7 of the manual */ \
 	asm("push {lr}"); /* save lr */ \
 	asm("push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12}"); /* save others */ \
 	asm("mrs r0, spsr"); /* get spsr to save it */ \
@@ -221,15 +239,21 @@ static void timer_update() {
 	asm("pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12}"); /* restore others */ \
 	asm("ldm sp!, {pc}^"); /* special mode to return from exception handlers */
 
-void __attribute__((naked)) exceptionTimer1Entry() { EXCEPTION_TOP exceptionHandler(lr, IRQ_TIMER_1); EXCEPTION_BOTTOM }
+void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP exceptionHandler(lr, EX_OFFSET_IRQ); EXCEPTION_BOTTOM }
 
 void installExceptionHandler(uint32_t index, void(*address)()) {
-	uint32_t* vectorTable = (uint32_t*)0;
-	vectorTable[index] = 0xEA000000 | (((uint32_t)address - (8 + 4 * index)) >> 2);
+	uint32_t* handlers = (uint32_t*)VECTOR_TABLE_SIZE;
+	handlers[index] = (uint32_t)address;
 }
 
 Exceptions::Exceptions() {
-	installExceptionHandler(IRQ_TIMER_1, &exceptionTimer1Entry);
+	// fill vector table with "ldr pc, [pc, #24]" which will point to our table of ex handlers
+	uint32_t* vectorTable = (uint32_t*)0;
+	for (int i = 0; i < 8; i++) {
+		vectorTable[i] = 0xe59ff018;
+	}
+
+	installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
 }
 
 void Exceptions::enableExceptions() {
