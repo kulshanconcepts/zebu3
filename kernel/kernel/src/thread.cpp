@@ -86,7 +86,7 @@ Thread::Thread(void* pc) : prev(nullptr), next(nullptr) {
 
     this->pc = (uint32_t)pc;
     this->sp = stackPage + memory->getPageSize() - 4;
-    this->cpsr = 0x60000000 | ARM4_MODE_USER;
+    this->cpsr = 0x60000000 | ARM4_MODE_SUPER;
     this->next = nullptr;
     this->prev = nullptr;
 }
