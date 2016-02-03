@@ -115,6 +115,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	exceptions.enableExceptions();
 
 	while (true) {
-		asm("wfi");
+		logger.info(MODULE, "Sitting like a duck");
+		//asm("wfi");
 	} // idle forever
 }

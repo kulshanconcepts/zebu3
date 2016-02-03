@@ -239,6 +239,7 @@ static void timer_update() {
 	asm("ldm sp!, {pc}^"); /* special mode to return from exception handlers */
 
 void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP exceptionHandler(lr, EX_OFFSET_IRQ); EXCEPTION_BOTTOM }
+void __attribute__((naked)) exceptionUnknownEntry() { EXCEPTION_TOP exceptionHandler(lr, 0xFFFFFFFF); EXCEPTION_BOTTOM }
 
 void installExceptionHandler(uint32_t index, void(*address)()) {
 	uint32_t* handlers = (uint32_t*)VECTOR_TABLE_SIZE;
@@ -250,6 +251,7 @@ Exceptions::Exceptions() {
 	uint32_t* vectorTable = (uint32_t*)0;
 	for (int i = 0; i < 8; i++) {
 		vectorTable[i] = 0xe59ff018;
+		installExceptionHandler(i, &exceptionUnknownEntry);
 	}
 
 	installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
@@ -269,5 +271,8 @@ void Exceptions::enableExceptions() {
 
 	// initialize timer
 	timer_last = mmio_read(TIMER_COUNTER_LOW);
+
+	Logger::getInstance()->info("Exception", "Timer update");
+
 	timer_update();
 }
