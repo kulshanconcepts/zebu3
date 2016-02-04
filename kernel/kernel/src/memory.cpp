@@ -26,6 +26,7 @@
  */
 
 #include "memory.h"
+#include "logger.h"
 
 void memset(void* address, uint32_t value, size_t count) {
 	uint8_t* addr = (uint8_t*)address;
@@ -97,7 +98,7 @@ void PhysicalMemory::initialize(uint32_t kernelStart, uint32_t kernelSize, uint3
 	uint32_t kernelFirstPage = kernelStart / pageSize;
 
 	// adjust the Kernel, the stack is just before it and another stack too!
-	kernelFirstPage =- 2;
+	kernelFirstPage -= 2;
 	kernelPages += 2;
 
 	// we need pagesOfAllocation consecutive pages to store our allocation bits
@@ -106,7 +107,10 @@ void PhysicalMemory::initialize(uint32_t kernelStart, uint32_t kernelSize, uint3
 	uint32_t allocFirstPage = kernelFirstPage + kernelPages;
 
 	if (pagesOfAllocation < kernelFirstPage) {
+		Logger::getInstance()->debug("PhysicalMemory", "Memory map can fit before the kernel");
 		allocFirstPage = 1; // leave the first page open, cuz it has stuff there
+	} else {
+		Logger::getInstance()->debug("PhysicalMemory", "Memory map can't fit before the kernel, going to page %d", allocFirstPage);
 	}
 
 	allocations = (uint32_t*)(allocFirstPage * pageSize);
