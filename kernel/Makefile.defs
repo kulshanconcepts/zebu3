@@ -35,5 +35,5 @@ AR=$(BINPREFIX)ar
 CC=$(BINPREFIX)gcc
 CXX=$(BINPREFIX)g++
 OBJCOPY=$(BINPREFIX)objcopy
-CFLAGS=-mcpu=cortex-a7 -mfpu=vfpv4 -fpic -ffreestanding -std=gnu99 -Wall -Wextra
-CXXFLAGS=-mcpu=cortex-a7 -mfpu=vfpv4 -fpic -ffreestanding -std=c++11 -Wall -Wextra
+CFLAGS=-mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a -mtune=cortex-a7 -fpic -ffreestanding -std=gnu99 -Wall -Wextra
+CXXFLAGS=-mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a -mtune=cortex-a7 -fpic -ffreestanding -std=c++11 -Wall -Wextra
