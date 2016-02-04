@@ -255,7 +255,7 @@ void installExceptionHandler(uint32_t index, void(*address)()) {
 	uint32_t* handlers = (uint32_t*)VECTOR_TABLE_SIZE;
 	handlers[index] = (uint32_t)address;
 
-	Logger::getInstance()->debug("Exceptions", "Install handler: %d at %X", index, (uint32_t)address);
+	Logger::getInstance()->debug("Exceptions", "Install handler: %d (0x%X) = 0x%X", index, &handlers[index], (uint32_t)address);
 }
 
 Exceptions::Exceptions() {
@@ -265,12 +265,16 @@ Exceptions::Exceptions() {
 	Logger::getInstance()->debug("Exceptions", "Existing exceptions: 0:%X 1:%X 2:%X 3:%X 4:%X 5:%X 6:%X 7:%X",
 			vectorTable[0], vectorTable[1], vectorTable[2], vectorTable[3], vectorTable[4],
 			vectorTable[5], vectorTable[6], vectorTable[7]);
-	
+
 	// starting at 1 so we can preserve whatever was already there
 	for (int i = 1; i < 8; i++) {
 		vectorTable[i] = 0xe59ff018;
 		installExceptionHandler(i, &exceptionUnknownEntry);
 	}
+
+	Logger::getInstance()->debug("Exceptions", "New exceptions: 0:%X 1:%X 2:%X 3:%X 4:%X 5:%X 6:%X 7:%X",
+			vectorTable[0], vectorTable[1], vectorTable[2], vectorTable[3], vectorTable[4],
+			vectorTable[5], vectorTable[6], vectorTable[7]);
 
 	installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
 }
