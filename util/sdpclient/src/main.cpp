@@ -50,6 +50,8 @@ void usage(const char* name) {
     fprintf(stderr, "        2: Warning (default)\n");
     fprintf(stderr, "        3: Info\n");
     fprintf(stderr, "        4: Debug\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, " -m <module>: Ignore a specified module. Can be repeated.\n");
     fprintf(stderr, "device: A serial device connected to the Raspberry Pi\n");
 }
 
@@ -71,6 +73,7 @@ int main(int argc, const char** argv) {
 
     std::string device;
     std::string kernelFile = "kernel.img";
+    Logger logger;
 
     int argIndex = 1;
     while (argIndex < argc) {
@@ -96,6 +99,14 @@ int main(int argc, const char** argv) {
             }
             arg = argv[argIndex];
             kernelFile = arg;
+        } else if (strcmp("-m", arg) == 0) {
+            argIndex++;
+            if (argIndex >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            arg = argv[argIndex];
+            logger.ignoreModule(arg);
         } else if (device.empty()) {
             device = arg;
         } else {
@@ -111,7 +122,6 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-    Logger logger;
     logger.setMaxLevel((LogLevel)maxLog);
 
     try {
