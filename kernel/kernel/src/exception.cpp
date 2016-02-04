@@ -29,19 +29,9 @@
 #include "mmio.h"
 #include "thread.h"
 #include "logger.h"
+#include "gpio.h" // debug
 
 #define VECTOR_TABLE_SIZE 32
-
-#define TIMER_BASE 0x00003000
-
-#define TIMER_CONTROL_AND_STATUS TIMER_BASE
-#define TIMER_COUNTER_LOW TIMER_BASE+0x04
-#define TIMER_COUNTER_HIGH TIMER_BASE+0x08
-#define TIMER_COMPARE_1 TIMER_BASE+0x10
-#define TIMER_COMPARE_3 TIMER_BASE+0x18
-
-#define CLEAR_TIMER_1 0x20 // write these to TIMER_CONTROL_AND_STATUS to clear interrupt
-#define CLEAR_TIMER_3 0x80
 
 #define PIC_BASE 0xB000
 
@@ -67,6 +57,27 @@
 #define IRQ_TIMER_1 0x01
 #define IRQ_TIMER_2 0x02
 #define IRQ_TIMER_3 0x03
+
+#define ARM_TIMER_BASE 0xB400
+#define ARM_TIMER_LOAD ARM_TIMER_BASE
+#define ARM_TIMER_VALUE ARM_TIMER_BASE+0x04
+#define ARM_TIMER_CTRL ARM_TIMER_BASE+0x08
+#define ARM_TIMER_CLEAR_IRQ ARM_TIMER_BASE+0x0C
+#define ARM_TIMER_RAW_IRQ ARM_TIMER_BASE+0x10
+#define ARM_TIMER_MASKED_IRQ ARM_TIMER_BASE+0x14
+#define ARM_TIMER_RELOAD ARM_TIMER_BASE+0x18
+#define ARM_TIMER_PREDIVIDER ARM_TIMER_BASE+0x1C
+#define ARM_TIMER_COUNTER ARM_TIMER_BASE+0x20
+
+#define IRQ_ARM_TIMER 0
+#define ARM_TIMER_CTRL_32BIT (1<<1)
+#define ARM_TIMER_CTRL_PRESCALE_1 (0<<2)
+#define ARM_TIMER_CTRL_PRESCALE_16 (1<<2)
+#define ARM_TIMER_CTRL_PRESCALE_256 (2<<2)
+#define ARM_TIMER_CTRL_IRQ_ENABLE (1<<5)
+#define ARM_TIMER_CTRL_IRQ_DISABLE (0<<5)
+#define ARM_TIMER_CTRL_ENABLE (1<<7)
+#define ARM_TIMER_CTRL_DISABLE (0<<7)
 
 // TODO: this should probably be determined dynamically
 #define KERNEL_EXCEPTION_STACK 0x7000
@@ -113,7 +124,7 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 		if (/*that number == */IRQ_TIMER_1) {
 
 			// clear the IRQ
-			mmio_write(TIMER_CONTROL_AND_STATUS, 1 << 1);
+			mmio_write(ARM_TIMER_CLEAR_IRQ, 1);
 
 			Thread* thread;
 
@@ -197,16 +208,6 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 	}
 }
 
-static uint32_t timer_last = 0;
-
-static void timer_update() {
-	// timer runs a 1 MHz, and we want to get a hit every 10 ms,
-	// or 100 times per second, so the next hit will be 1 million / 100
-	// units from now, or 10,000 ticks of the timer
-	timer_last += 10000;
-	mmio_write(TIMER_COMPARE_1, timer_last);
-}
-
 #define EXCEPTION_TOP_SWI \
 	uint32_t lr; \
 	asm("mov sp, %[ps]" : : [ps]"i" (KERNEL_EXCEPTION_STACK)); /* set sp(r13) */ \
@@ -238,41 +239,70 @@ static void timer_update() {
 	asm("pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12}"); /* restore others */ \
 	asm("ldm sp!, {pc}^"); /* special mode to return from exception handlers */
 
-void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP exceptionHandler(lr, EX_OFFSET_IRQ); EXCEPTION_BOTTOM }
+//void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP exceptionHandler(lr, EX_OFFSET_IRQ); EXCEPTION_BOTTOM }
 void __attribute__((naked)) exceptionUnknownEntry() { EXCEPTION_TOP exceptionHandler(lr, 0xFFFFFFFF); EXCEPTION_BOTTOM }
+
+void /*__attribute__((interrupt("IRQ")))*/ irq_vector() {
+	static bool on = false;
+
+	Logger::getInstance()->warning("irq", "hi");
+
+	if (on) {
+		mmio_write(GPIO_BASE + 0x00020, 1 << 15);
+		mmio_write(GPIO_BASE + 0x0002C, 1 << 3);
+	} else {
+		mmio_write(GPIO_BASE + 0x0002C, 1 << 15);
+		mmio_write(GPIO_BASE + 0x00020, 1 << 3);
+	}
+	on = !on;
+}
+
+void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP irq_vector(); EXCEPTION_BOTTOM }
 
 void installExceptionHandler(uint32_t index, void(*address)()) {
 	uint32_t* handlers = (uint32_t*)VECTOR_TABLE_SIZE;
 	handlers[index] = (uint32_t)address;
+
+	Logger::getInstance()->debug("Exceptions", "Install handler: %d at %X", index, (uint32_t)address);
 }
 
 Exceptions::Exceptions() {
 	// fill vector table with "ldr pc, [pc, #24]" which will point to our table of ex handlers
 	uint32_t* vectorTable = (uint32_t*)0;
-	for (int i = 0; i < 8; i++) {
+	for (int i = 1; i < 8; i++) {
 		vectorTable[i] = 0xe59ff018;
 		installExceptionHandler(i, &exceptionUnknownEntry);
 	}
 
+// debug
+uint32_t ra = mmio_read(GPIO_BASE + 0x00010);
+ra &= ~(7 << 21);
+ra |= 1 << 21;
+mmio_write(GPIO_BASE + 0x00010, ra);
+
+ra = mmio_read(GPIO_BASE + 0x0000C);
+ra &= ~(7 << 15);
+ra |= 1 << 15;
+mmio_write(GPIO_BASE + 0x0000C, ra);
+// end debug
+
+	//installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
 	installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
 }
 
 void Exceptions::enableExceptions() {
-	Logger::getInstance()->info("Exception", "Enabling IRQs");
-
-	enableIRQ();
-
 	Logger::getInstance()->info("Exception", "Enabling timer IRQ");
 
 	// enable timer IRQ
-	mmio_write(PIC_ENABLE_BASIC_IRQ, 1 << IRQ_TIMER_1);
+	mmio_write(PIC_ENABLE_BASIC_IRQ, 1 << IRQ_ARM_TIMER);
 
 	Logger::getInstance()->info("Exception", "Initializing timer");
 
 	// initialize timer
-	timer_last = mmio_read(TIMER_COUNTER_LOW);
+	mmio_write(ARM_TIMER_LOAD, 0x400);
+	mmio_write(ARM_TIMER_CTRL, ARM_TIMER_CTRL_32BIT | ARM_TIMER_CTRL_ENABLE | ARM_TIMER_CTRL_IRQ_ENABLE | ARM_TIMER_CTRL_PRESCALE_256);
 
-	Logger::getInstance()->info("Exception", "Timer update");
+	Logger::getInstance()->info("Exception", "Enabling IRQs");
 
-	timer_update();
+	enableIRQ();
 }
