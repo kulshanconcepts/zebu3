@@ -29,7 +29,7 @@
 #include "mmio.h"
 #include "thread.h"
 #include "logger.h"
-#include "gpio.h" // debug
+#include "led.h"
 
 #define VECTOR_TABLE_SIZE 32
 
@@ -243,18 +243,10 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 void __attribute__((naked)) exceptionUnknownEntry() { EXCEPTION_TOP exceptionHandler(lr, 0xFFFFFFFF); EXCEPTION_BOTTOM }
 
 void /*__attribute__((interrupt("IRQ")))*/ irq_vector() {
-	static bool on = false;
 
 	Logger::getInstance()->warning("irq", "hi");
 
-	if (on) {
-		mmio_write(GPIO_BASE + 0x00020, 1 << 15);
-		mmio_write(GPIO_BASE + 0x0002C, 1 << 3);
-	} else {
-		mmio_write(GPIO_BASE + 0x0002C, 1 << 15);
-		mmio_write(GPIO_BASE + 0x00020, 1 << 3);
-	}
-	on = !on;
+	RaspiLed::getInstance()->toggle();
 }
 
 void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP irq_vector(); EXCEPTION_BOTTOM }
@@ -269,24 +261,17 @@ void installExceptionHandler(uint32_t index, void(*address)()) {
 Exceptions::Exceptions() {
 	// fill vector table with "ldr pc, [pc, #24]" which will point to our table of ex handlers
 	uint32_t* vectorTable = (uint32_t*)0;
+
+	Logger::getInstance()->debug("Exceptions", "Existing exceptions: 0:%X 1:%X 2:%X 3:%X 4:%X 5:%X 6:%X 7:%X",
+			vectorTable[0], vectorTable[1], vectorTable[2], vectorTable[3], vectorTable[4],
+			vectorTable[5], vectorTable[6], vectorTable[7]);
+	
+	// starting at 1 so we can preserve whatever was already there
 	for (int i = 1; i < 8; i++) {
 		vectorTable[i] = 0xe59ff018;
 		installExceptionHandler(i, &exceptionUnknownEntry);
 	}
 
-// debug
-uint32_t ra = mmio_read(GPIO_BASE + 0x00010);
-ra &= ~(7 << 21);
-ra |= 1 << 21;
-mmio_write(GPIO_BASE + 0x00010, ra);
-
-ra = mmio_read(GPIO_BASE + 0x0000C);
-ra &= ~(7 << 15);
-ra |= 1 << 15;
-mmio_write(GPIO_BASE + 0x0000C, ra);
-// end debug
-
-	//installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
 	installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
 }
 
