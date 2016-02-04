@@ -57,6 +57,15 @@ _start:
 	cmp r4, r9
 	blo 1b
 
+	// Set stack pointer to 0x7000 for IRQ mode
+	mov r0, #(0x12 | 0x80 | 0x40)
+	msr cpsr_c, r0 // switch to IRQ mode
+	mov sp, #0x7000
+
+	// go back to supervisor mode
+	mov r0, #(0x13 | 0x80 | 0x40)
+	msr cpsr_c, r0
+
 	// get address of kernel_main
 	ldr r3, =kernel_main
 	blx r3
