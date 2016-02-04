@@ -34,6 +34,7 @@
 #define LED_GPSET GPIO_BASE+0x08
 
 #define LED_GPFVAL (1<<21)
+#define LED_GPIO_VAL (1<<15)
 
 RaspiLed* RaspiLed::instance = nullptr;
 
@@ -47,11 +48,13 @@ RaspiLed::RaspiLed() : on(false) {
 }
 
 void RaspiLed::turnOn() {
-    mmio_write(LED_GPSET, LED_GPFVAL);
+    mmio_write(LED_GPSET, LED_GPIO_VAL);
+    on = true;
 }
 
 void RaspiLed::turnOff() {
-    mmio_write(LED_GPCLEAR, LED_GPFVAL);
+    mmio_write(LED_GPCLEAR, LED_GPIO_VAL);
+    on = false;
 }
 
 void RaspiLed::toggle() {
