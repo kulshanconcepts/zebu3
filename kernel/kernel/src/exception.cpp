@@ -53,11 +53,6 @@
 #define EX_OFFSET_IRQ 6
 #define EX_OFFSET_FIQ 7
 
-#define IRQ_TIMER_0 0x00
-#define IRQ_TIMER_1 0x01
-#define IRQ_TIMER_2 0x02
-#define IRQ_TIMER_3 0x03
-
 #define ARM_TIMER_BASE 0xB400
 #define ARM_TIMER_LOAD ARM_TIMER_BASE
 #define ARM_TIMER_VALUE ARM_TIMER_BASE+0x04
@@ -121,7 +116,7 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 	if (type == EX_OFFSET_IRQ) {
 		// TODO find out which IRQ it is?
 
-		if (/*that number == */IRQ_TIMER_1) {
+		if (/*that number == IRQ_ARM_TIMER*/1) {
 
 			// clear the IRQ
 			mmio_write(ARM_TIMER_CLEAR_IRQ, 1);
@@ -242,11 +237,10 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 //void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP exceptionHandler(lr, EX_OFFSET_IRQ); EXCEPTION_BOTTOM }
 void __attribute__((naked)) exceptionUnknownEntry() { EXCEPTION_TOP exceptionHandler(lr, 0xFFFFFFFF); EXCEPTION_BOTTOM }
 
-void /*__attribute__((interrupt("IRQ")))*/ irq_vector() {
-
-	Logger::getInstance()->warning("irq", "hi");
-
+void __attribute__((interrupt("IRQ"))) irq_vector() {
 	RaspiLed::getInstance()->toggle();
+	//Logger::getInstance()->warning("irq", "hi");
+
 }
 
 void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP irq_vector(); EXCEPTION_BOTTOM }
@@ -269,14 +263,14 @@ Exceptions::Exceptions() {
 	// starting at 1 so we can preserve whatever was already there
 	for (int i = 1; i < 8; i++) {
 		vectorTable[i] = 0xe59ff018;
-		installExceptionHandler(i, &exceptionUnknownEntry);
+		installExceptionHandler(i, &irq_vector);
 	}
 
 	Logger::getInstance()->debug("Exceptions", "New exceptions: 0:%X 1:%X 2:%X 3:%X 4:%X 5:%X 6:%X 7:%X",
 			vectorTable[0], vectorTable[1], vectorTable[2], vectorTable[3], vectorTable[4],
 			vectorTable[5], vectorTable[6], vectorTable[7]);
 
-	installExceptionHandler(EX_OFFSET_IRQ, &exceptionIrqEntry);
+	installExceptionHandler(EX_OFFSET_IRQ, &irq_vector);
 }
 
 void Exceptions::enableExceptions() {
