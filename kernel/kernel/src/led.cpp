@@ -29,9 +29,9 @@
 #include "gpio.h"
 #include "mmio.h"
 
-#define LED_GPFSEL GPIO_BASE+0x04
-#define LED_GPCLEAR GPIO_BASE+0x0B
-#define LED_GPSET GPIO_BASE+0x08
+#define LED_GPFSEL GPIO_BASE+0x10
+#define LED_GPCLEAR GPIO_BASE+0x2C
+#define LED_GPSET GPIO_BASE+0x20
 
 #define LED_GPFVAL (1<<21)
 #define LED_GPIO_VAL (1<<15)
