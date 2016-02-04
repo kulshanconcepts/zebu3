@@ -37,6 +37,11 @@ Logger::~Logger() {}
 
 void Logger::log(LogLevel level, const std::string& module, const std::string& format, va_list args) {
     if (level <= maxLevel) {
+        for (auto iter = ignoredModules.begin(); iter != ignoredModules.end(); iter++) {
+            if (*iter == module) {
+                return;
+            }
+        }
         pthread_mutex_lock(&mutex);
         vprintf(("[" + getLevelString(level) + ":" + module + "]: " + format + "\n").c_str(), args);
         pthread_mutex_unlock(&mutex);

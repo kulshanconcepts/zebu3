@@ -30,6 +30,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <string>
+#include <list>
 #include "pthread.h"
 
 enum LogLevel : uint8_t {
@@ -45,6 +46,7 @@ private:
     pthread_mutex_t mutex;
     static std::string getLevelString(LogLevel level);
     void log(LogLevel level, const std::string& module, const std::string& format, va_list args);
+    std::list<std::string> ignoredModules;
 
     LogLevel maxLevel;
 
@@ -53,6 +55,8 @@ public:
     ~Logger();
 
     inline void setMaxLevel(LogLevel level) { maxLevel = level; };
+
+    inline void ignoreModule(const std::string& module) { ignoredModules.push_back(module); }
 
     void log(LogLevel level, const std::string& module, const std::string& format, ...);
     void fatal(const std::string& module, const std::string& format, ...);
