@@ -37,6 +37,7 @@
 #include "sdp.h"
 #include "version.h"
 #include "thread.h"
+#include "led.h"
 
 extern "C" uint32_t __start;
 extern "C" uint32_t __end;
@@ -107,6 +108,13 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	logger.info(MODULE, "Kernel heap has %d bytes free and %d bytes used.", heap.getFreeBytes(), heap.getUsedBytes());
 
 	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.", kernelStart, kernelSize >> 10);
+
+	RaspiLed led;
+
+	for (int i = 0; i < 500000; i++) ;
+	led.toggle();
+	for (int i = 0; i < 500000; i++) ;
+	led.toggle();
 
 	Exceptions exceptions;
 
