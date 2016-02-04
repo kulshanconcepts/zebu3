@@ -110,10 +110,14 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.", kernelStart, kernelSize >> 10);
 
 	RaspiLed led;
-
-	for (int i = 0; i < 500000; i++) ;
+	logger.debug(MODULE, "LED toggle 0");
 	led.toggle();
-	for (int i = 0; i < 500000; i++) ;
+	logger.debug(MODULE, "resting");
+	for (int i = 0; i < 50000; i++) ;
+	logger.debug(MODULE, "LED toggle 1");
+	led.toggle();
+	for (int i = 0; i < 50000; i++) ;
+	logger.debug(MODULE, "LED toggle 2");
 	led.toggle();
 
 	Exceptions exceptions;
