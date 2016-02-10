@@ -110,7 +110,11 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	Framebuffer framebuffer;
 
-	framebuffer.setPixel(10, 10, 0xFF00FF);
+	for (int x = 100; x < 150; x++) {
+		for (int y = 100; y < 150; y++) {
+			framebuffer.setPixel(x, y, 0xFF00FF);
+		}
+	}
 
 	//Exceptions exceptions;
 

@@ -36,6 +36,7 @@ private:
     uint32_t depth;
     uint32_t pitch;
     uint8_t* buffer;
+    uint32_t offset;
 public:
     Framebuffer();
     void setPixel(uint32_t x, uint32_t y, uint32_t rgb);

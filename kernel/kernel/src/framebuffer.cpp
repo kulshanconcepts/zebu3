@@ -30,17 +30,18 @@
 #include "mailboxproperty.h"
 #include "logger.h"
 
-Framebuffer::Framebuffer() : width(1600), height(900), depth(32), pitch(4), buffer(nullptr) {
+Framebuffer::Framebuffer() : width(1600), height(900), depth(32), pitch(4), buffer(nullptr), offset(0) {
     Mailbox mailbox;
     MailboxPropertyInterface mpi(&mailbox);
 
-    mpi.addTag(MailboxPropertyTag::TAG_ALLOCATE_BUFFER);
+    mpi.addTag(MailboxPropertyTag::TAG_ALLOCATE_BUFFER, 0x00000000);
     mpi.addTag(MailboxPropertyTag::TAG_SET_PHYSICAL_SIZE, width, height);
     mpi.addTag(MailboxPropertyTag::TAG_SET_VIRTUAL_SIZE, width, height * 2);
     mpi.addTag(MailboxPropertyTag::TAG_SET_DEPTH, depth);
     mpi.addTag(MailboxPropertyTag::TAG_GET_PITCH);
     mpi.addTag(MailboxPropertyTag::TAG_GET_PHYSICAL_SIZE);
     mpi.addTag(MailboxPropertyTag::TAG_GET_DEPTH);
+    mpi.addTag(MailboxPropertyTag::TAG_GET_VIRTUAL_OFFSET);
     mpi.process();
 
     MailboxProperty property;
@@ -62,15 +63,25 @@ Framebuffer::Framebuffer() : width(1600), height(900), depth(32), pitch(4), buff
         buffer = (uint8_t*)property.data.intBuffer[0];
     }
 
-    Logger::getInstance()->info("Framebuffer", "Initialized framebuffer at %dx%dx%dbpp at %X", width, height, depth, buffer);
+    if (mpi.getProperty(TAG_GET_VIRTUAL_OFFSET, property)) {
+        offset = property.data.intBuffer[0];
+    }
+
+    Logger::getInstance()->info("Framebuffer", "Initialized framebuffer at %dx%dx%dbpp (pitch %d) at %X. "
+        "Virtual offset is %d.", width, height, depth, pitch, buffer, offset);
 }
 
 void Framebuffer::setPixel(uint32_t x, uint32_t y, uint32_t argb) {
-    uint8_t* pixel = (uint8_t*)(x * (depth / 8) + y * pitch);
+    uint8_t* pixel = (uint8_t*)(x * (depth / 8) + y * pitch + (uint32_t)buffer);
+
     uint8_t red = (uint8_t)((argb & 0x00FF0000) >> 16);
     uint8_t green = (uint8_t)((argb & 0x0000FF00) >> 8);
     uint8_t blue = (uint8_t)((argb & 0x000000FF) >> 0);
     uint8_t alpha = (uint8_t)((argb & 0xFF000000) >> 24);
+
+//    Logger::getInstance()->info("Framebuffer", "Setting pixel (%d,%d) at 0x%X to (%d, %d, %d)",
+//        x, y, pixel, red, green, blue);
+
 
     if (depth == 32) {
         *(pixel++) = red;
