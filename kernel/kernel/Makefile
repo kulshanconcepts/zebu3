@@ -29,7 +29,7 @@ include ../Makefile.defs
 CFLAGS += -I./include -I../shared-boot/include -I../../include
 CXXFLAGS += -I./include -I../shared-boot/include -I../../include
 
-OBJECTS=boot.o print.o memory.o exception.o kernel.o logger.o sdp.o
+OBJECTS=boot.o print.o memory.o exception.o kernel.o logger.o sdp.o mailbox.o framebuffer.o mailboxproperty.o
 
 ifeq ($(CI_BUILD),yes)
 CISTUFF=.CPPCHECK

@@ -36,6 +36,7 @@
 #include "logger.h"
 #include "sdp.h"
 #include "version.h"
+#include "framebuffer.h"
 
 extern "C" uint32_t __start;
 extern "C" uint32_t __end;
@@ -107,9 +108,13 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.", kernelStart, kernelSize >> 10);
 
-	Exceptions exceptions;
+	Framebuffer framebuffer;
 
-	exceptions.enableExceptions();
+	framebuffer.setPixel(10, 10, 0xFF00FF);
+
+	//Exceptions exceptions;
+
+	//exceptions.enableExceptions();
 
 	logger.fatal(MODULE, "End of execution");
 

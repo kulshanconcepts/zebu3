@@ -26,37 +26,19 @@
  */
 #pragma once
 
-class Logger;
-
-#include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include "sdp.h"
+#include <stddef.h>
 
-enum LogLevel : uint8_t {
-    LOGLEVEL_FATAL = 0,
-    LOGLEVEL_ERROR,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG
-};
-
-class Logger {
+class Framebuffer {
 private:
-    static Logger* instance;
-    SdpServer& sdpServer;
-
-    void log(LogLevel level, const char* module, const char* format, va_list args);
-
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+    uint32_t pitch;
+    uint8_t* buffer;
 public:
-    Logger(SdpServer& sdpServer);
-
-    static inline Logger* getInstance() { return instance; }
-
-    void log(LogLevel level, const char* module, const char* format, ...);
-    void fatal(const char* module, const char* format, ...);
-    void error(const char* module, const char* format, ...);
-    void warning(const char* module, const char* format, ...);
-    void info(const char* module, const char* format, ...);
-    void debug(const char* module, const char* format, ...);
+    Framebuffer();
+    void setPixel(uint32_t x, uint32_t y, uint32_t rgb);
+    inline uint32_t getWidth() { return width; }
+    inline uint32_t getHeight() { return height; }
 };

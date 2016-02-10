@@ -24,39 +24,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
 
-class Logger;
+#include "mailbox.h"
+#include "mmio.h"
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdarg.h>
-#include "sdp.h"
+#define MAILBOX_BASE 0xB880
 
-enum LogLevel : uint8_t {
-    LOGLEVEL_FATAL = 0,
-    LOGLEVEL_ERROR,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG
+enum MailboxStatusBits {
+    ARM_MS_FULL = 0x80000000,
+    ARM_MS_EMPTY = 0x40000000,
+    ARM_MS_LEVEL = 0x400000FF
 };
 
-class Logger {
-private:
-    static Logger* instance;
-    SdpServer& sdpServer;
-
-    void log(LogLevel level, const char* module, const char* format, va_list args);
-
-public:
-    Logger(SdpServer& sdpServer);
-
-    static inline Logger* getInstance() { return instance; }
-
-    void log(LogLevel level, const char* module, const char* format, ...);
-    void fatal(const char* module, const char* format, ...);
-    void error(const char* module, const char* format, ...);
-    void warning(const char* module, const char* format, ...);
-    void info(const char* module, const char* format, ...);
-    void debug(const char* module, const char* format, ...);
+enum MailboxRegisters {
+    MB_REG_READ = 0x00,
+    MB_REG_PEEK = 0x10,
+    MB_REG_SENDER = 0x14,
+    MB_REG_STATUS = 0x18,
+    MB_REG_CONFIG = 0x1C
 };
+
+Mailbox::Mailbox() {
+
+}
+
+void Mailbox::write(MailboxChannels channel, uint32_t value) const {
+    value <<= 4; // shift values up by 4 bits to make room for:
+    value |= channel;
+
+    while (mmio_read(MAILBOX_BASE + MB_REG_STATUS) & ARM_MS_FULL); // blocked
+
+    mmio_write(MAILBOX_BASE + MB_REG_READ, value);
+}
+
+uint32_t Mailbox::read(MailboxChannels channel) const {
+    while (true) {
+        while (mmio_read(MAILBOX_BASE + MB_REG_STATUS) & ARM_MS_EMPTY); // blocked
+
+        uint32_t value = mmio_read(MAILBOX_BASE + MB_REG_READ);
+        if ((value & 0xF) != channel) {
+            continue;
+        }
+
+        return value >> 4;
+    }
+}

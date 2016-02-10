@@ -26,37 +26,27 @@
  */
 #pragma once
 
-class Logger;
-
-#include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include "sdp.h"
+#include <stddef.h>
 
-enum LogLevel : uint8_t {
-    LOGLEVEL_FATAL = 0,
-    LOGLEVEL_ERROR,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG
+enum MailboxChannels {
+    POWER_MANAGEMENT = 0,
+    FRAMEBUFFER,
+    VIRTUAL_UART,
+    VCHIQ,
+    LEDS,
+    BUTTONS,
+    TOUCHSCREEN,
+    UNUSED,
+    TAGS_ARM_TO_VC,
+    TARGS_VC_TO_ARM
 };
 
-class Logger {
+class Mailbox {
 private:
-    static Logger* instance;
-    SdpServer& sdpServer;
-
-    void log(LogLevel level, const char* module, const char* format, va_list args);
-
 public:
-    Logger(SdpServer& sdpServer);
+    Mailbox();
 
-    static inline Logger* getInstance() { return instance; }
-
-    void log(LogLevel level, const char* module, const char* format, ...);
-    void fatal(const char* module, const char* format, ...);
-    void error(const char* module, const char* format, ...);
-    void warning(const char* module, const char* format, ...);
-    void info(const char* module, const char* format, ...);
-    void debug(const char* module, const char* format, ...);
+    void write(MailboxChannels channel, uint32_t value) const;
+    uint32_t read(MailboxChannels channel) const;
 };
