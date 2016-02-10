@@ -111,7 +111,12 @@ static bool firstSwitch = true;
 
 void exceptionHandler(uint32_t lr, uint32_t type) {
 
-	Logger::getInstance()->info("Exception", "Handing %X %X", lr, type);
+	while (true) {
+		RaspiLed::getInstance()->toggle();
+		for (int i = 0; i < 50000; i++);
+	}
+
+	Logger::getInstance()->info("Exceptions", "Handing %X %X", lr, type);
 
 	if (type == EX_OFFSET_IRQ) {
 		// TODO find out which IRQ it is?
@@ -198,7 +203,7 @@ void exceptionHandler(uint32_t lr, uint32_t type) {
 			// unknown IRQ. do we care?
 		}
 	} else {
-		Logger::getInstance()->fatal("Exception", "Unhandled exception");
+		Logger::getInstance()->fatal("Exceptions", "Unhandled exception");
 		while (1) { }
 	}
 }
@@ -239,8 +244,6 @@ void __attribute__((naked)) exceptionUnknownEntry() { EXCEPTION_TOP exceptionHan
 
 void __attribute__((interrupt("IRQ"))) irq_vector() {
 	RaspiLed::getInstance()->toggle();
-	//Logger::getInstance()->warning("irq", "hi");
-
 }
 
 void __attribute__((naked)) exceptionIrqEntry() { EXCEPTION_TOP irq_vector(); EXCEPTION_BOTTOM }
@@ -254,7 +257,7 @@ void installExceptionHandler(uint32_t index, void(*address)()) {
 
 Exceptions::Exceptions() {
 	// fill vector table with "ldr pc, [pc, #24]" which will point to our table of ex handlers
-	uint32_t* vectorTable = (uint32_t*)0;
+	uint32_t* vectorTable = (uint32_t*)0x00000000;
 
 	Logger::getInstance()->debug("Exceptions", "Existing exceptions: 0:%X 1:%X 2:%X 3:%X 4:%X 5:%X 6:%X 7:%X",
 			vectorTable[0], vectorTable[1], vectorTable[2], vectorTable[3], vectorTable[4],
@@ -274,18 +277,27 @@ Exceptions::Exceptions() {
 }
 
 void Exceptions::enableExceptions() {
-	Logger::getInstance()->info("Exception", "Enabling timer IRQ");
+	typedef void(*ptr)(void);
+
+	ptr* vector = (ptr*)0x00000000;
+	ptr* handlers = (ptr*)VECTOR_TABLE_SIZE;
+	Logger::getInstance()->debug("Exceptions", "Vector 6 = %X, addr %X, compare to %X", vector[6], handlers[6], &exceptionIrqEntry);
+
+	//handlers[6](); // this worked, basically, it turned the LED on (but didn't return)
+	//((ptr)0x00000018)(); // this works (jump to exception handler, LED turns on)
+
+	Logger::getInstance()->info("Exceptions", "Enabling timer IRQ");
 
 	// enable timer IRQ
 	mmio_write(PIC_ENABLE_BASIC_IRQ, 1 << IRQ_ARM_TIMER);
 
-	Logger::getInstance()->info("Exception", "Initializing timer");
+	Logger::getInstance()->info("Exceptions", "Initializing timer");
 
 	// initialize timer
 	mmio_write(ARM_TIMER_LOAD, 0x400);
 	mmio_write(ARM_TIMER_CTRL, ARM_TIMER_CTRL_32BIT | ARM_TIMER_CTRL_ENABLE | ARM_TIMER_CTRL_IRQ_ENABLE | ARM_TIMER_CTRL_PRESCALE_256);
 
-	Logger::getInstance()->info("Exception", "Enabling IRQs");
+	Logger::getInstance()->info("Exceptions", "Enabling IRQs");
 
 	enableIRQ();
 }
