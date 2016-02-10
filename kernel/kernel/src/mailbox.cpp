@@ -41,7 +41,8 @@ enum MailboxRegisters {
     MB_REG_PEEK = 0x10,
     MB_REG_SENDER = 0x14,
     MB_REG_STATUS = 0x18,
-    MB_REG_CONFIG = 0x1C
+    MB_REG_CONFIG = 0x1C,
+    MB_REG_WRITE = 0x20
 };
 
 Mailbox::Mailbox() {
@@ -54,7 +55,7 @@ void Mailbox::write(MailboxChannels channel, uint32_t value) const {
 
     while (mmio_read(MAILBOX_BASE + MB_REG_STATUS) & ARM_MS_FULL); // blocked
 
-    mmio_write(MAILBOX_BASE + MB_REG_READ, value);
+    mmio_write(MAILBOX_BASE + MB_REG_WRITE, value);
 }
 
 uint32_t Mailbox::read(MailboxChannels channel) const {
