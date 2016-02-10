@@ -30,7 +30,7 @@
 #include "mailboxproperty.h"
 #include "logger.h"
 
-Framebuffer::Framebuffer() : width(1024), height(768), depth(32), pitch(4), buffer(nullptr) {
+Framebuffer::Framebuffer() : width(1600), height(900), depth(32), pitch(4), buffer(nullptr) {
     Mailbox mailbox;
     MailboxPropertyInterface mpi(&mailbox);
 
