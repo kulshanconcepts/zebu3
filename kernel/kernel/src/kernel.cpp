@@ -112,7 +112,12 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	for (int x = 100; x < 150; x++) {
 		for (int y = 100; y < 150; y++) {
-			framebuffer.setPixel(x, y, 0xFF00FF);
+			framebuffer.setPixel(x, y, 0xFFFF00FF);
+			uint32_t what = framebuffer.getPixel(x, y);
+			if (0xFFFF00FF != what) {
+				logger.warning(MODULE, "Unable to set pixel, value was 0x%X", what);
+				break;
+			}
 		}
 	}
 

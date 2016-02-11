@@ -40,6 +40,7 @@ private:
 public:
     Framebuffer();
     void setPixel(uint32_t x, uint32_t y, uint32_t rgb);
+    uint32_t getPixel(uint32_t x, uint32_t y);
     inline uint32_t getWidth() { return width; }
     inline uint32_t getHeight() { return height; }
 };
