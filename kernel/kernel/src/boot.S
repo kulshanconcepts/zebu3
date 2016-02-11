@@ -57,6 +57,26 @@ _start:
 	cmp r4, r9
 	blo 1b
 
+	// Enable L1 cache
+	mrc p15, #0, r4, c1, c0, #0
+	orr r4, #0x0800 // branch prediction
+	orr r4, #0x0004 // data cache
+	orr r4, #0x1000 // code cache
+	mcr p15, #0, r4, c1, c0, #0
+
+	// Enable floating-point
+	mrc p15, #0, r4, c1, c0, #2
+	orr r4, r4, #(0xF << 20)
+	mcr p15, #0, r4, c1, c0, #2
+
+	// flush prefetch buffer
+	mov r4, #0
+	mcr p15, #0, r4, c7, c5, #4
+
+	// Finally enable floating point
+	mov r4, #0x40000000
+	fmxr fpexc, r4
+
 	// get address of kernel_main
 	ldr r3, =kernel_main
 	blx r3
