@@ -39,7 +39,7 @@ enum MailboxChannels {
     TOUCHSCREEN,
     UNUSED,
     TAGS_ARM_TO_VC,
-    TARGS_VC_TO_ARM
+    TAGS_VC_TO_ARM
 };
 
 class Mailbox {

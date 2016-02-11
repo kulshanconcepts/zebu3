@@ -131,6 +131,6 @@ public:
     MailboxPropertyInterface(Mailbox* mailbox);
 
     void addTag(MailboxPropertyTag tag, ...);
-    uint32_t process();
+    bool process();
     bool getProperty(MailboxPropertyTag tag, MailboxProperty& property);
 };

@@ -30,19 +30,23 @@
 #include "mailboxproperty.h"
 #include "logger.h"
 
-Framebuffer::Framebuffer() : width(1600), height(900), depth(24), pitch(4), buffer(nullptr), offset(0) {
+Framebuffer::Framebuffer() : width(640), height(480), depth(32), pitch(640*4), buffer(nullptr), bufferSize(0), offset(0) {
     Mailbox mailbox;
     MailboxPropertyInterface mpi(&mailbox);
 
-    mpi.addTag(MailboxPropertyTag::TAG_ALLOCATE_BUFFER, 0x00000000);
+    mpi.addTag(MailboxPropertyTag::TAG_ALLOCATE_BUFFER, 16);
     mpi.addTag(MailboxPropertyTag::TAG_SET_PHYSICAL_SIZE, width, height);
-    mpi.addTag(MailboxPropertyTag::TAG_SET_VIRTUAL_SIZE, width, height * 2);
+    mpi.addTag(MailboxPropertyTag::TAG_SET_VIRTUAL_SIZE, width, height);
     mpi.addTag(MailboxPropertyTag::TAG_SET_DEPTH, depth);
     mpi.addTag(MailboxPropertyTag::TAG_GET_PITCH);
     mpi.addTag(MailboxPropertyTag::TAG_GET_PHYSICAL_SIZE);
     mpi.addTag(MailboxPropertyTag::TAG_GET_DEPTH);
     mpi.addTag(MailboxPropertyTag::TAG_GET_VIRTUAL_OFFSET);
-    mpi.process();
+
+    if (!mpi.process()) {
+        Logger::getInstance()->warning("Framebuffer", "Could not query the GPU.");
+        return;
+    }
 
     MailboxProperty property;
 
@@ -61,14 +65,15 @@ Framebuffer::Framebuffer() : width(1600), height(900), depth(24), pitch(4), buff
 
     if (mpi.getProperty(TAG_ALLOCATE_BUFFER, property)) {
         buffer = (uint8_t*)property.data.intBuffer[0];
+        bufferSize = property.data.intBuffer[1];
     }
 
     if (mpi.getProperty(TAG_GET_VIRTUAL_OFFSET, property)) {
         offset = property.data.intBuffer[0];
     }
 
-    Logger::getInstance()->info("Framebuffer", "Initialized framebuffer at %dx%dx%dbpp (pitch %d) at %X. "
-        "Virtual offset is %d.", width, height, depth, pitch, buffer, offset);
+    Logger::getInstance()->info("Framebuffer", "Initialized %d-byte framebuffer at %dx%dx%dbpp (pitch %d) at %X. "
+        "Virtual offset is %d.", bufferSize, width, height, depth, pitch, buffer, offset);
 }
 
 #define PIXEL_POINTER(x, y) (uint8_t*)(x * (depth / 8) + y * pitch + (uint32_t)buffer)

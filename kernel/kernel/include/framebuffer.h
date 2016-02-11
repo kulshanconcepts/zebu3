@@ -36,6 +36,7 @@ private:
     uint32_t depth;
     uint32_t pitch;
     uint8_t* buffer;
+    uint32_t bufferSize;
     uint32_t offset;
 public:
     Framebuffer();

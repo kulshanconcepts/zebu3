@@ -143,14 +143,18 @@ void MailboxPropertyInterface::addTag(MailboxPropertyTag tag, ...) {
     va_end(args);
 }
 
-uint32_t MailboxPropertyInterface::process() {
+bool MailboxPropertyInterface::process() {
     // set buffer size
     propertyTagBuffer[0] = (propertyTagIndex + 1) * 4;
     propertyTagBuffer[1] = 0; // request
 
     mailbox->write(MailboxChannels::TAGS_ARM_TO_VC, ((uint32_t)propertyTagBuffer) >> 4);
 
-    return mailbox->read(MailboxChannels::TAGS_ARM_TO_VC);
+    if (mailbox->read(MailboxChannels::TAGS_ARM_TO_VC) && propertyTagBuffer[1] == 0x80000000) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool MailboxPropertyInterface::getProperty(MailboxPropertyTag tag, MailboxProperty& property) {
