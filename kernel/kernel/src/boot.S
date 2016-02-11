@@ -36,6 +36,10 @@
 // r2  = 0x00000100  (start of ATAGS)
 // we must preserve these for the kernel itself
 _start:
+	// make sure we're running in supervisor mode, with IRQ and FIQ disabled
+	mov r4, #(0x13 | 0x80 | 0x40)
+	msr cpsr_c, r4
+	
 	// stack setup (grows back from 0x8000)
 	mov sp, #0x8000
 
