@@ -148,7 +148,7 @@ bool MailboxPropertyInterface::process() {
     propertyTagBuffer[0] = (propertyTagIndex + 1) * 4;
     propertyTagBuffer[1] = 0; // request
 
-    mailbox->write(MailboxChannels::TAGS_ARM_TO_VC, ((uint32_t)propertyTagBuffer) >> 4);
+    mailbox->write(MailboxChannels::TAGS_ARM_TO_VC, (uint32_t)propertyTagBuffer);
 
     if (mailbox->read(MailboxChannels::TAGS_ARM_TO_VC) && propertyTagBuffer[1] == 0x80000000) {
         return true;

@@ -30,6 +30,20 @@
 #include "mailboxproperty.h"
 #include "logger.h"
 
+struct {
+    uint32_t width;
+    uint32_t height;
+    uint32_t virtualWidth;
+    uint32_t virtualHeight;
+    uint32_t pitch;
+    uint32_t depth;
+    uint32_t xOffset;
+    uint32_t yOffset;
+    uint32_t pointer;
+    uint32_t size;
+} framebufferInfo __attribute__((aligned(16)));
+
+
 Framebuffer::Framebuffer() : width(640), height(480), depth(32), pitch(640*4), buffer(nullptr), bufferSize(0), offset(0) {
     Mailbox mailbox;
     MailboxPropertyInterface mpi(&mailbox);
@@ -44,32 +58,58 @@ Framebuffer::Framebuffer() : width(640), height(480), depth(32), pitch(640*4), b
     mpi.addTag(MailboxPropertyTag::TAG_GET_VIRTUAL_OFFSET);
 
     if (!mpi.process()) {
-        Logger::getInstance()->warning("Framebuffer", "Could not query the GPU.");
-        return;
-    }
+        Logger::getInstance()->warning("Framebuffer", "Could not query the GPU using mailbox property tags.");
 
-    MailboxProperty property;
+        // Try the old way instead!
+        framebufferInfo.width = width;
+        framebufferInfo.height = height;
+        framebufferInfo.virtualWidth = width;
+        framebufferInfo.virtualHeight = height;
+        framebufferInfo.pitch = 0;
+        framebufferInfo.depth = depth;
+        framebufferInfo.xOffset = 0;
+        framebufferInfo.yOffset = 0;
+        framebufferInfo.pointer = 0;
+        framebufferInfo.size = 0;
 
-    if (mpi.getProperty(TAG_GET_PHYSICAL_SIZE, property)) {
-        width = property.data.intBuffer[0];
-        height = property.data.intBuffer[1];
-    }
+        mailbox.write(MailboxChannels::FRAMEBUFFER, (uint32_t)&framebufferInfo | 0x40000000);
+        uint32_t result = mailbox.read(MailboxChannels::FRAMEBUFFER);
 
-    if (mpi.getProperty(TAG_GET_DEPTH, property)) {
-        depth = property.data.intBuffer[0];
-    }
+        if (result == 0) {
+            width = framebufferInfo.width;
+            height = framebufferInfo.height;
+            pitch = framebufferInfo.pitch;
+            depth = framebufferInfo.depth;
+            buffer = (uint8_t*)framebufferInfo.pointer;
+            bufferSize = framebufferInfo.size;
+        } else {
+            Logger::getInstance()->warning("Framebuffer", "Got non-zero response to FB request: %d", result);
+            return;
+        }
+    } else {
+        MailboxProperty property;
 
-    if (mpi.getProperty(TAG_GET_PITCH, property)) {
-        pitch = property.data.intBuffer[0];
-    }
+        if (mpi.getProperty(TAG_GET_PHYSICAL_SIZE, property)) {
+            width = property.data.intBuffer[0];
+            height = property.data.intBuffer[1];
+        }
 
-    if (mpi.getProperty(TAG_ALLOCATE_BUFFER, property)) {
-        buffer = (uint8_t*)property.data.intBuffer[0];
-        bufferSize = property.data.intBuffer[1];
-    }
+        if (mpi.getProperty(TAG_GET_DEPTH, property)) {
+            depth = property.data.intBuffer[0];
+        }
 
-    if (mpi.getProperty(TAG_GET_VIRTUAL_OFFSET, property)) {
-        offset = property.data.intBuffer[0];
+        if (mpi.getProperty(TAG_GET_PITCH, property)) {
+            pitch = property.data.intBuffer[0];
+        }
+
+        if (mpi.getProperty(TAG_ALLOCATE_BUFFER, property)) {
+            buffer = (uint8_t*)property.data.intBuffer[0];
+            bufferSize = property.data.intBuffer[1];
+        }
+
+        if (mpi.getProperty(TAG_GET_VIRTUAL_OFFSET, property)) {
+            offset = property.data.intBuffer[0];
+        }
     }
 
     Logger::getInstance()->info("Framebuffer", "Initialized %d-byte framebuffer at %dx%dx%dbpp (pitch %d) at %X. "

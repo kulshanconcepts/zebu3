@@ -50,7 +50,7 @@ Mailbox::Mailbox() {
 }
 
 void Mailbox::write(MailboxChannels channel, uint32_t value) const {
-    value <<= 4; // shift values up by 4 bits to make room for:
+    value &= 0xFFFFFFF0; // clear bottom 4 bits for channel number
     value |= channel;
 
     while (mmio_read(MAILBOX_BASE + MB_REG_STATUS) & ARM_MS_FULL); // blocked
@@ -67,6 +67,6 @@ uint32_t Mailbox::read(MailboxChannels channel) const {
             continue;
         }
 
-        return value >> 4;
+        return value & 0xFFFFFFF0;
     }
 }
