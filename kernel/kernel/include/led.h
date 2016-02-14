@@ -24,38 +24,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 #pragma once
 
-class Logger;
-
-#include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include "sdp.h"
+#include <stddef.h>
 
-enum LogLevel : uint8_t {
-    LOGLEVEL_FATAL = 0,
-    LOGLEVEL_ERROR,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG
-};
-
-class Logger {
+class RaspiLed {
 private:
-    static Logger* instance;
-    SdpServer& sdpServer;
-
-    void log(LogLevel level, const char* module, const char* format, va_list args);
-
+    static RaspiLed* instance;
+    bool on;
 public:
-    Logger(SdpServer& sdpServer);
-    static inline Logger* getInstance() { return instance; }
-
-    void log(LogLevel level, const char* module, const char* format, ...);
-    void fatal(const char* module, const char* format, ...);
-    void error(const char* module, const char* format, ...);
-    void warning(const char* module, const char* format, ...);
-    void info(const char* module, const char* format, ...);
-    void debug(const char* module, const char* format, ...);
+    static inline RaspiLed* getInstance() { return instance; }
+    
+    RaspiLed();
+    inline bool isOn() const { return on; }
+    void turnOn();
+    void turnOff();
+    void toggle();
 };

@@ -36,6 +36,8 @@
 #include "logger.h"
 #include "sdp.h"
 #include "version.h"
+#include "thread.h"
+#include "led.h"
 
 extern "C" uint32_t __start;
 extern "C" uint32_t __end;
@@ -107,12 +109,17 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.", kernelStart, kernelSize >> 10);
 
+	RaspiLed led;
+	led.turnOff();
+
 	Exceptions exceptions;
+
+	Thread::initialize(); // creates the idle thread
 
 	exceptions.enableExceptions();
 
-	logger.fatal(MODULE, "End of execution");
-
-	// TODO: can we halt or something?
-	while (true) {}
+	while (true) {
+		logger.info(MODULE, "Sitting like a duck");
+		//asm("wfi");
+	} // idle forever
 }

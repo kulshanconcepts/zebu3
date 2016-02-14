@@ -24,5 +24,5 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-../../bin/arm-none-eabi-objdump -D kernel.bin -b binary -marmv5 -Mreg-names-raw
+../../bin/arm-none-eabi-objdump -D kernel.elf -marmv5 -Mreg-names-raw
 

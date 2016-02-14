@@ -26,36 +26,57 @@
  */
 #pragma once
 
-class Logger;
-
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include "sdp.h"
 
-enum LogLevel : uint8_t {
-    LOGLEVEL_FATAL = 0,
-    LOGLEVEL_ERROR,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG
-};
-
-class Logger {
+class Thread {
 private:
-    static Logger* instance;
-    SdpServer& sdpServer;
+    static Thread* currentThread;
 
-    void log(LogLevel level, const char* module, const char* format, va_list args);
+    static Thread* runnable;
+    static Thread* blocked;
+
+    Thread(void* pc);
+
+    uint32_t stackPage;
+
+    Thread* prev;
+    Thread* next;
+
+    static void run(Thread* thread);
+    static void block(Thread* thread);
 
 public:
-    Logger(SdpServer& sdpServer);
-    static inline Logger* getInstance() { return instance; }
+    static inline Thread* getCurrentThread() { return currentThread; }
+    static Thread* getNextReady();
+    static Thread* create(void* pc);
+    static void initialize();
 
-    void log(LogLevel level, const char* module, const char* format, ...);
-    void fatal(const char* module, const char* format, ...);
-    void error(const char* module, const char* format, ...);
-    void warning(const char* module, const char* format, ...);
-    void info(const char* module, const char* format, ...);
-    void debug(const char* module, const char* format, ...);
+    // Thread state:
+    union {
+        uint32_t r15;
+        uint32_t pc;
+    };
+    union {
+        uint32_t r14;
+        uint32_t lr;
+    };
+    union {
+        uint32_t r13;
+        uint32_t sp;
+    };
+    uint32_t r12;
+    uint32_t r11;
+    uint32_t r10;
+    uint32_t r9;
+    uint32_t r8;
+    uint32_t r7;
+    uint32_t r6;
+    uint32_t r5;
+    uint32_t r4;
+    uint32_t r3;
+    uint32_t r2;
+    uint32_t r1;
+    uint32_t r0;
+    uint32_t cpsr;
 };

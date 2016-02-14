@@ -24,38 +24,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
 
-class Logger;
+#include "led.h"
+#include "gpio.h"
+#include "mmio.h"
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdarg.h>
-#include "sdp.h"
+#define LED_GPFSEL GPIO_BASE+0x10
+#define LED_GPCLEAR GPIO_BASE+0x2C
+#define LED_GPSET GPIO_BASE+0x20
 
-enum LogLevel : uint8_t {
-    LOGLEVEL_FATAL = 0,
-    LOGLEVEL_ERROR,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG
-};
+#define LED_GPFVAL (1<<21)
+#define LED_GPIO_VAL (1<<15)
 
-class Logger {
-private:
-    static Logger* instance;
-    SdpServer& sdpServer;
+RaspiLed* RaspiLed::instance = nullptr;
 
-    void log(LogLevel level, const char* module, const char* format, va_list args);
+RaspiLed::RaspiLed() : on(false) {
+    instance = this;
 
-public:
-    Logger(SdpServer& sdpServer);
-    static inline Logger* getInstance() { return instance; }
+    // enable GPIO16 (where the LED is at)
+    mmio_write(LED_GPFSEL, mmio_read(LED_GPFSEL) | LED_GPFVAL);
 
-    void log(LogLevel level, const char* module, const char* format, ...);
-    void fatal(const char* module, const char* format, ...);
-    void error(const char* module, const char* format, ...);
-    void warning(const char* module, const char* format, ...);
-    void info(const char* module, const char* format, ...);
-    void debug(const char* module, const char* format, ...);
-};
+    turnOn();
+}
+
+void RaspiLed::turnOn() {
+    mmio_write(LED_GPSET, LED_GPIO_VAL);
+    on = true;
+}
+
+void RaspiLed::turnOff() {
+    mmio_write(LED_GPCLEAR, LED_GPIO_VAL);
+    on = false;
+}
+
+void RaspiLed::toggle() {
+    if (isOn()) {
+        turnOff();
+    } else {
+        turnOn();
+    }
+}
