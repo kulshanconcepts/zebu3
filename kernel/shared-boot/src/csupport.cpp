@@ -33,3 +33,5 @@ extern "C" void abort() {
 	// TODO: do something better
 	while (1) {}
 }
+
+extern "C" void __cxa_pure_virtual() { abort(); }
