@@ -2,6 +2,6 @@ language: cpp
 
 before_install:
     - sudo apt-get -qq update
-    - sudo apt-get install -y cppcheck
+    - sudo apt-get install -y cppcheck libgmp-dev libmpfr-dev libmpc-dev
 script:
     - "bash build-ci.sh"
