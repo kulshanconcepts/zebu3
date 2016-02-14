@@ -27,7 +27,7 @@
 include ../Makefile.defs
 
 CFLAGS += -I./include -I../shared-boot/include -I../../include
-CXXFLAGS += -I./include -I../shared-boot/include -I../../include -fno-exceptions
+CXXFLAGS += -I./include -I../shared-boot/include -I../../include -fno-exceptions -fno-rtti
 
 OBJECTS=boot.o print.o memory.o exception.o kernel.o logger.o sdp.o thread.o led.o
 
@@ -45,10 +45,10 @@ clean:
 obj/%.o: src/%.S
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/%.o: src/%.c
+obj/%.o: src/%.c include/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/%.o: src/%.cpp
+obj/%.o: src/%.cpp include/*.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 kernel.elf: $(addprefix obj/, $(OBJECTS)) ../lib/libshared-boot.a
