@@ -62,6 +62,7 @@ public:
 
         while (item != nullptr && index > 0) {
             item = item->next;
+            index--;
         }
 
         if (item == nullptr) {
@@ -107,6 +108,7 @@ public:
         while (index > 0) {
             previous = item;
             item = item->next;
+            index--;
         }
 
         if (previous != nullptr) {
