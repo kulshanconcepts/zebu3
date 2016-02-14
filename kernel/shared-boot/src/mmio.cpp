@@ -27,6 +27,7 @@
 
 #include "mmio.h"
 
+#define RPI1_BASE 0x20000000
 #define RPI2_BASE 0x3F000000
 
 void mmio_write(uint32_t reg, uint32_t data) {
