@@ -53,7 +53,7 @@ void sendNumber(RaspiLed& led, int number) {
     led.turnOn();
 }
 
-#define MORSE_BASE 100
+#define MORSE_BASE 150
 
 void sendLetter(RaspiLed& led, char letter) {
     static char codes[][6] = {
@@ -152,9 +152,18 @@ void send(RaspiLed& led, const char* message) {
     sendText(led, message);
 }
 
+RaspiLed* led_ptr = nullptr;
+
+void __attribute__((interrupt("IRQ"))) irq_vector() {
+    sendText(*led_ptr, "IRQ");
+}
+
+extern "C" void enable_interrupts();
+
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
     RaspiLed led;
+    led_ptr = &led;
     led.turnOff();
     pause(1000);
     led.turnOn();
@@ -164,7 +173,33 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
     send(led, "OK");
 
-    send(led, 0x42);
+    uint32_t* vectors = (uint32_t*)0;
+    vectors[6] = 0xe59ff018;
+
+    uint32_t* addresses = (uint32_t*)32;
+    addresses[6] = (uint32_t)&irq_vector;
+
+#define PIC_BASE 0xB200
+#define PIC_ENABLE_BASIC_IRQ PIC_BASE+(4*6)
+#define IRQ_ARM_TIMER_BIT 0
+#define ARM_TIMER_BASE 0xB400
+#define ARM_TIMER_LOAD ARM_TIMER_BASE
+#define ARM_TIMER_CTRL ARM_TIMER_BASE+(4*2)
+#define ARM_TIMER_CTRL_32BIT (1<<1)
+#define ARM_TIMER_CTRL_ENABLE (1<<7)
+#define ARM_TIMER_CTRL_IRQ_ENABLE (1<<5)
+#define ARM_TIMER_CTRL_PRESCALE_256 (2<<2)
+
+    enable_interrupts();
+
+    mmio_write(PIC_ENABLE_BASIC_IRQ, 1 << IRQ_ARM_TIMER_BIT);
+
+    mmio_write(ARM_TIMER_LOAD, 0x400);
+
+    send(led, "GO");
+
+    mmio_write(ARM_TIMER_CTRL, ARM_TIMER_CTRL_32BIT | ARM_TIMER_CTRL_ENABLE | ARM_TIMER_CTRL_IRQ_ENABLE | ARM_TIMER_CTRL_PRESCALE_256);
+
 
     while (1) {
         sendText(led, "SOS");
