@@ -51,16 +51,97 @@ void sendNumber(RaspiLed& led, int number) {
     led.turnOn();
 }
 
+#define MORSE_BASE 100
+
+void sendLetter(RaspiLed& led, char letter) {
+    static char codes[][6] = {
+        { 1,2,0 }, // A
+        { 2,1,1,1,0 }, // B
+        { 2,1,2,1,0 }, // C
+        { 2,1,1,0 }, // D
+        { 1,0 }, // E
+        { 1,1,2,1,0 }, // F
+        { 2,2,1,0 }, // G
+        { 1,1,1,1,0 }, // H
+        { 1,1,0 }, // I
+        { 1,2,2,2,0 }, // J
+        { 2,1,2,0 }, // K
+        { 1,2,1,1,0 }, // L
+        { 2,2,0 }, // M
+        { 2,1,0 }, // N
+        { 2,2,2,0 }, // O
+        { 1,2,2,1,0 }, // P
+        { 2,2,1,2,0 }, // Q
+        { 1,2,1,0 }, // R
+        { 1,1,1,0 }, // S
+        { 2,0 }, // T
+        { 1,1,2,0 }, // U
+        { 1,1,1,2,0 }, // V
+        { 1,2,2,0 }, // W
+        { 2,1,1,2,0 }, // X
+        { 2,1,2,2,0 }, // Y
+        { 2,2,1,1,0 }, // Z
+        { 2,2,2,2,2,0 }, // 0
+        { 1,2,2,2,2,0 }, // 1
+        { 1,1,2,2,2,0 }, // 2
+        { 1,1,1,2,2,0 }, // 3
+        { 1,1,1,1,2,0 }, // 4
+        { 1,1,1,1,1,0 }, // 5
+        { 2,1,1,1,1,0 }, // 6
+        { 2,2,1,1,1,0 }, // 7
+        { 2,2,2,1,1,0 }, // 8
+        { 2,2,2,2,1,0 } // 9
+    };
+
+    char offset;
+    if (letter >= 'a' && letter <= 'z') {
+        offset = letter - 'a';
+    } else if (letter >= 'A' && letter <= 'Z') {
+        offset = letter - 'A';
+    } else if (letter >= '0' && letter <= '9') {
+        offset = letter - '0' + 26;
+    } else if (letter == ' ') {
+        pause(MORSE_BASE*4); // 3 already done at end of letter
+        return;
+    } else {
+        return;
+    }
+
+    char* morse = codes[(int)offset];
+
+    while (*morse != 0) {
+        led.turnOn();
+        if (*morse == 1) {
+            pause(MORSE_BASE);
+        } else {
+            pause(MORSE_BASE*3);
+        }
+        led.turnOff();
+        pause(MORSE_BASE);
+        morse++;
+    }
+
+    pause(MORSE_BASE*2); // already did 1 at the end of the letter
+}
+
+void sendText(RaspiLed& led, const char* message) {
+    int offset = 0;
+
+    while (message[offset]) {
+        sendLetter(led, message[offset]);
+        offset++;
+    }
+
+    pause(MORSE_BASE*10);
+}
+
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
     RaspiLed led;
     led.turnOff();
 
-    sendNumber(led, 5);
-
     while (1) {
-        pause(500);
-        led.toggle();
+        sendText(led, "SOS");
     }
 }
