@@ -51,6 +51,8 @@ void vsnprintf(char* buffer, size_t bufferSize, const char* format, va_list args
 				// right now we only support the type
 				if (*format == '%') {
 					buffer[idx++] = '%';
+
+					state = NORMAL;
 				} else if (*format == 's') {
 					char* p = va_arg(args, char*);
 					while (*p) {
@@ -72,10 +74,30 @@ void vsnprintf(char* buffer, size_t bufferSize, const char* format, va_list args
 					}
 
 					state = NORMAL;
-				} else if (*format == 'X') {
+				} else if (*format == 'X' || *format == 'x' || *format == 'p' || *format == 'P') {
 					int i = va_arg(args, int);
 					char tmp[12] = {0};
-					itoa_hex(i, tmp);
+					if (*format == 'X' || *format == 'P') {
+						itoa_hex(i, tmp);
+					} else {
+						itoa_hex_lower(i, tmp);
+					}
+
+					if (*format == 'P' || *format == 'p') {
+						char tmp2[12] = "0x00000000";
+						char* p2 = &tmp2[0];
+						size_t toCopy = 10 - strlen(tmp);
+						while (toCopy > 0) {
+							buffer[idx++] = *p2;
+							p2++;
+							toCopy--;
+							if (idx >= maxIndex) {
+								tmp[0] = 0; // force the loop below to jump out
+								break;
+							}
+						}
+					}
+
 					char* p = &tmp[0];
 					while (*p) {
 						buffer[idx++] = *p;

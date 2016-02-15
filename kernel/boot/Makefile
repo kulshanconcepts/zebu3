@@ -52,7 +52,7 @@ obj/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 bootloader.elf: $(addprefix obj/, $(OBJECTS)) ../lib/libshared-boot.a
-	$(CXX) $(CXXFLAGS) -T linker.ld -o bootloader.elf -ffreestanding -O2 -nostdlib $(addprefix obj/, $(OBJECTS)) -lgcc -L../lib -lshared-boot
+	$(CXX) $(CXXFLAGS) -T linker.ld -o bootloader.elf -ffreestanding -O2 -nostdlib $(addprefix obj/, $(OBJECTS)) -L../lib -lshared-boot -lgcc -lshared-boot
 
 bootloader.bin: bootloader.elf
 	$(OBJCOPY) bootloader.elf -O binary bootloader.bin

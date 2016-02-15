@@ -63,7 +63,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 	logger.info(MODULE, PRODUCT_NAME " " PRODUCT_VERSION_STR
 			": kernel is starting with parameters %X %X %X", r0, r1, atagsAddress);
 
-	logger.debug(MODULE, "Reading ATAG information from %X...", atagsAddress);
+	logger.debug(MODULE, "Reading ATAG information from %p...", atagsAddress);
 
 	PhysicalMemory physicalMemory;
 
@@ -87,7 +87,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 				}
 				break;
 			case ATAG_MEM:
-				logger.debug(MODULE, "Memory ATAG entry (%d MB @ 0x%X)", atag->mem.size >> 20, atag->mem.startAddress);
+				logger.debug(MODULE, "Memory ATAG entry (%d MB @ %p)", atag->mem.size >> 20, atag->mem.startAddress);
 				if (!physicalMemory.addBlock(atag->mem.startAddress, atag->mem.size)) {
 					logger.error(MODULE, "Could not add memory block to list (too many?)");
 				}
@@ -107,7 +107,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 	logger.info(MODULE, "Kernel heap has %d bytes free and %d bytes used.", heap.getFreeBytes(), heap.getUsedBytes());
 
-	logger.debug(MODULE, "The kernel starts at 0x%X and is %d KB.", kernelStart, kernelSize >> 10);
+	logger.debug(MODULE, "The kernel starts at %p and is %d KB.", kernelStart, kernelSize >> 10);
 
 	RaspiLed led;
 	led.turnOff();

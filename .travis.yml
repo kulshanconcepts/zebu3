@@ -7,7 +7,7 @@ branches:
 
 before_install:
     - sudo apt-get -qq update
-    - sudo apt-get -qq install cppcheck doxygen
+    - sudo apt-get -qq install cppcheck doxygen graphviz
 install:
     - wget https://kulshanconcepts.com/files/cross-20160214.tgz -nv -nc --no-check-certificate
     - sudo tar -xzf cross-20160214.tgz -C /opt

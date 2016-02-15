@@ -50,7 +50,32 @@ extern "C" void* memcpy(void* destination, const void* source, size_t count) {
 	return destination;
 }
 
-void itoa(int i, char* buffer) {
+void memset(void* address, uint32_t value, size_t count) {
+	uint8_t* addr = (uint8_t*)address;
+
+	value |= (value << 24) | (value << 16) | (value << 8);
+
+	while (count > 0 && (count % 4) != 0) {
+		*addr = (uint8_t)value;
+		addr++;
+		count--;
+	}
+
+	while (count >= 4) {
+		*((uint32_t*)addr) = value;
+		addr += 4;
+		count -= 4;
+	}
+
+	while (count > 0) {
+		*addr = (uint8_t)value;
+		addr++;
+		count--;
+	}
+}
+
+
+static void itoa_any(int64_t i, char* buffer, int base, const char* digits, bool sign) {
 	if (i == 0) {
 		*buffer = '0';
 		buffer++;
@@ -58,19 +83,19 @@ void itoa(int i, char* buffer) {
 		return;
 	}
 
-	if (i < 0) {
+	if (sign && i < 0) {
 		*buffer = '-';
 		buffer++;
 		i = -i;
 	}
 
-	char tmp[12] = {0};
-	int o = 10;
+	char tmp[96] = {0};
+	int o = 94;
 
 	while (i != 0) {
-		tmp[o] = '0' + (i % 10);
+		tmp[o] = digits[i % base];
 		o--;
-		i /= 10;
+		i /= base;
 	}
 
 	o++;
@@ -80,32 +105,18 @@ void itoa(int i, char* buffer) {
 		buffer++;
 		o++;
 	}
+
+	*buffer = 0;
+}
+
+void itoa(int i, char* buffer) {
+	itoa_any(i, buffer, 10, "0123456789", true);
 }
 
 void itoa_hex(uint32_t i, char* buffer) {
-	char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	itoa_any(i, buffer, 16, "0123456789ABCDEF", false);
+}
 
-	if (i == 0) {
-		*buffer = '0';
-		buffer++;
-		*buffer = 0;
-		return;
-	}
-
-	char tmp[12] = {0};
-	int o = 10;
-
-	while (i != 0) {
-		tmp[o] = digits[i % 16];
-		o--;
-		i /= 16;
-	}
-
-	o++;
-
-	while (tmp[o]) {
-		*buffer = tmp[o];
-		buffer++;
-		o++;
-	}
+void itoa_hex_lower(uint32_t i, char* buffer) {
+	itoa_any(i, buffer, 16, "0123456789abcdef", false);
 }

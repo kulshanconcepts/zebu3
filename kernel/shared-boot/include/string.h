@@ -32,4 +32,6 @@
 size_t strlen(const char* str);
 void itoa(int i, char* buffer);
 void itoa_hex(uint32_t i, char* buffer);
+void itoa_hex_lower(uint32_t i, char* buffer);
 extern "C" void* memcpy(void* destination, const void* source, size_t count);
+extern "C" void memset(void* address, uint32_t value, size_t count);

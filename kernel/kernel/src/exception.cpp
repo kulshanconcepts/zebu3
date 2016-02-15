@@ -252,7 +252,7 @@ void installExceptionHandler(uint32_t index, void(*address)()) {
 	uint32_t* handlers = (uint32_t*)VECTOR_TABLE_SIZE;
 	handlers[index] = (uint32_t)address;
 
-	Logger::getInstance()->debug("Exceptions", "Install handler: %d (0x%X) = 0x%X", index, &handlers[index], (uint32_t)address);
+	Logger::getInstance()->debug("Exceptions", "Install handler: %d (%p) = %p", index, &handlers[index], (uint32_t)address);
 }
 
 Exceptions::Exceptions() {
@@ -281,7 +281,7 @@ void Exceptions::enableExceptions() {
 
 	ptr* vector = (ptr*)0x00000000;
 	ptr* handlers = (ptr*)VECTOR_TABLE_SIZE;
-	Logger::getInstance()->debug("Exceptions", "Vector 6 = %X, addr %X, compare to %X", vector[6], handlers[6], &exceptionIrqEntry);
+	Logger::getInstance()->debug("Exceptions", "Vector 6 = %X, addr %p, compare to %p", vector[6], handlers[6], &exceptionIrqEntry);
 
 	//handlers[6](); // this worked, basically, it turned the LED on (but didn't return)
 	//((ptr)0x00000018)(); // this works (jump to exception handler, LED turns on)
