@@ -30,6 +30,8 @@
  */
 
 #include "led.h"
+#include "mmio.h"
+#include "string.h"
 
 void pause(int ms) {
     int whole = ms * 1200;
@@ -135,11 +137,34 @@ void sendText(RaspiLed& led, const char* message) {
     pause(MORSE_BASE*10);
 }
 
+void sendInt(RaspiLed& led, uint32_t i) {
+    char buffer[12] = {'0', 'x', 0};
+    itoa_hex(i, &buffer[2]);
+
+    sendText(led, buffer);
+}
+
+void send(RaspiLed& led, uint32_t i) {
+    sendInt(led, i);
+}
+
+void send(RaspiLed& led, const char* message) {
+    sendText(led, message);
+}
+
 extern "C"
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
-
     RaspiLed led;
     led.turnOff();
+    pause(1000);
+    led.turnOn();
+    pause(5000);
+    led.turnOff();
+    pause(500);
+
+    send(led, "OK");
+
+    send(led, 0x42);
 
     while (1) {
         sendText(led, "SOS");
