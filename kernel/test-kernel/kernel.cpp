@@ -179,6 +179,10 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
     uint32_t* addresses = (uint32_t*)32;
     addresses[6] = (uint32_t)&irq_vector;
 
+    typedef void (*fptr)(void);
+    fptr v = (fptr)24;
+    //(*v)();
+
 #define PIC_BASE 0xB200
 #define PIC_ENABLE_BASIC_IRQ PIC_BASE+(4*6)
 #define IRQ_ARM_TIMER_BIT 0
@@ -190,7 +194,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 #define ARM_TIMER_CTRL_IRQ_ENABLE (1<<5)
 #define ARM_TIMER_CTRL_PRESCALE_256 (2<<2)
 
-    enable_interrupts();
+    //enable_interrupts();
 
     mmio_write(PIC_ENABLE_BASIC_IRQ, 1 << IRQ_ARM_TIMER_BIT);
 
@@ -202,6 +206,10 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atagsAddress) {
 
 
     while (1) {
-        sendText(led, "SOS");
+        led.turnOff();
+        pause(100);
+        led.turnOn();
+        pause(100);
+        //sendText(led, "SOS");
     }
 }
