@@ -75,7 +75,7 @@ void memset(void* address, uint32_t value, size_t count) {
 }
 
 
-static void itoa_any(int i, char* buffer, int base, const char* digits, bool sign) {
+static void itoa_any(int64_t i, char* buffer, int base, const char* digits, bool sign) {
 	if (i == 0) {
 		*buffer = '0';
 		buffer++;
