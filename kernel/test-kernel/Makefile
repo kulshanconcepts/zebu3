@@ -24,60 +24,38 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-export CI_BUILD
+include ../Makefile.defs
+
+CFLAGS += -I./include -I../shared-boot/include -I../../include
+CXXFLAGS += -I./include -I../shared-boot/include -I../../include -fno-exceptions -fno-rtti
+
+OBJECTS=boot.o kernel.o led.o
 
 ifeq ($(CI_BUILD),yes)
-CISTUFF=.DOXYGEN .SONAR
+CISTUFF=
 else
 CISTUFF=
 endif
 
-export CPPCHECKFLAGS= --std=c++11 --std=c99 --platform=unix64 --enable=all --force --xml --xml-version=2 \
- 	-D__INTPTR_TYPE__ -D__UINT16_TYPE__ -D__UINT32_TYPE__ -D__UINT64_TYPE__ -D_TYPE_ptrdiff_t \
-	-D_TYPE_size_t -D_TYPE_wchar_t -D__INT8_TYPE__ -D__UINT8_TYPE__ -D__UINTPTR_TYPE__
-
-all: lib out out/kernel.bin out/test-kernel.bin out/bootloader.bin $(CISTUFF)
+all: obj test-kernel.bin $(CISTUFF)
 
 clean:
-	$(MAKE) -C shared-boot clean
-	$(MAKE) -C boot clean
-	$(MAKE) -C kernel clean
-	$(MAKE) -C test-kernel clean
-	-rm -rf out lib
+	-rm -rf test-kernel.bin test-kernel.elf obj
 
-lib/libshared-boot.a: .SHARED_BOOT
-	cp shared-boot/libshared-boot.a $@
+obj/%.o: %.S
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-.SHARED_BOOT:
-	$(MAKE) -C shared-boot
+obj/%.o: %.c *.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-out/kernel.bin: .KERNEL
-	cp kernel/kernel.bin out/kernel.bin
+obj/%.o: %.cpp *.h
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-.KERNEL: lib/libshared-boot.a
-	$(MAKE) -C kernel
+test-kernel.elf: $(addprefix obj/, $(OBJECTS)) ../lib/libshared-boot.a
+	$(CXX) $(CXXFLAGS) -T linker.ld -o test-kernel.elf -ffreestanding -O2 -nostdlib $(addprefix obj/, $(OBJECTS)) -L../lib -lshared-boot -lgcc -lshared-boot
 
-out/test-kernel.bin: .TEST-KERNEL
-	cp test-kernel/test-kernel.bin out/test-kernel.bin
+test-kernel.bin: test-kernel.elf
+	$(OBJCOPY) test-kernel.elf -O binary test-kernel.bin
 
-.TEST-KERNEL: lib/libshared-boot.a
-	$(MAKE) -C test-kernel
-
-out/bootloader.bin: .BOOTLOADER
-	cp boot/bootloader.bin out/bootloader.bin
-
-.BOOTLOADER: lib/libshared-boot.a
-	$(MAKE) -C boot
-
-lib:
-	test -d lib || mkdir lib
-
-out:
-	test -d out || mkdir out
-
-.DOXYGEN: out
-	test -d out/doxygen || mkdir out/doxygen
-	doxygen kernel.Doxyfile
-
-.SONAR:
-	/opt/sonar-scanner/bin/sonar-runner -X
+obj:
+	test -d obj || mkdir obj
