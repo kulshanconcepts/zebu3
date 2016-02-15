@@ -51,6 +51,8 @@ void vsnprintf(char* buffer, size_t bufferSize, const char* format, va_list args
 				// right now we only support the type
 				if (*format == '%') {
 					buffer[idx++] = '%';
+
+					state = NORMAL;
 				} else if (*format == 's') {
 					char* p = va_arg(args, char*);
 					while (*p) {
