@@ -72,10 +72,14 @@ void vsnprintf(char* buffer, size_t bufferSize, const char* format, va_list args
 					}
 
 					state = NORMAL;
-				} else if (*format == 'X') {
+				} else if (*format == 'X' || *format == 'x') {
 					int i = va_arg(args, int);
 					char tmp[12] = {0};
-					itoa_hex(i, tmp);
+					if (*format == 'X') {
+						itoa_hex(i, tmp);
+					} else {
+						itoa_hex_lower(i, tmp);
+					}
 					char* p = &tmp[0];
 					while (*p) {
 						buffer[idx++] = *p;

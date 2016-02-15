@@ -31,8 +31,6 @@
 
 #define MAX_PHYSICAL_BLOCKS 10
 
-void memset(void* address, uint32_t value, size_t count);
-
 struct physical_block {
 	uint32_t start;
 	uint32_t length;

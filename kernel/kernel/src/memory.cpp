@@ -27,22 +27,7 @@
 
 #include "memory.h"
 #include "logger.h"
-
-void memset(void* address, uint32_t value, size_t count) {
-	uint8_t* addr = (uint8_t*)address;
-
-	while (count >= 4) {
-		*((uint32_t*)addr) = value;
-		addr += 4;
-		count -= 4;
-	}
-
-	while (count > 0) {
-		*addr = (uint8_t)value;
-		addr++;
-		count--;
-	}
-}
+#include "string.h"
 
 #define UNINITIALIZED_BLOCK_START 0xFFFFFFFF
 
